@@ -128,17 +128,12 @@ public final class Extension extends EmptyExtension
     {
 	final List<ExtensionObject> res = new ArrayList<>();
 	res.add(new SimpleObjFactory("disks-popup-factory", "org.luwrain.linux.DefaultDisksPopupFactory", ()->new DefaultDisksPopupFactory(udisksMonitor)));
-		res.add(new SimpleShortcut("parted", org.luwrain.app.parted.App.class));
-	res.add(new SimpleShortcut("install", org.luwrain.app.install.App.class));
+		res.add(new DefaultShortcut("parted", org.luwrain.app.parted.App.class));
+	res.add(new DefaultShortcut("install", org.luwrain.app.install.App.class));
 
-	res.add(new Shortcut(){
-		@Override public String getExtObjName()
-		{
-		    return "term";
-		}
+	res.add(new DefaultShortcut("term", org.luwrain.app.term.App.class){
 		@Override public Application[] prepareApp(String[] args)
 		{
-		    NullCheck.notNullItems(args, "args");
 		    if (args.length == 1 && !args[0].isEmpty())
 			return new Application[]{new org.luwrain.app.term.App(termInfo, args[0])};
 		    final String dir = luwrain.getActiveAreaAttr(Luwrain.AreaAttr.DIRECTORY);
@@ -148,18 +143,7 @@ public final class Extension extends EmptyExtension
 		}
 	    });
 
-	res.add(new Shortcut(){
-		@Override public String getExtObjName()
-		{
-		    return "wifi";
-		}
-		@Override public Application[] prepareApp(String[] args)
-		{
-		    NullCheck.notNull(args, "args");
-		    return new Application[]{new org.luwrain.app.wifi.App()};
-		}
-	    });
-
+	res.add(new DefaultShortcut("wifi", org.luwrain.app.wifi.App.class));
 	return res.toArray(new ExtensionObject[res.size()]);
     }
 
