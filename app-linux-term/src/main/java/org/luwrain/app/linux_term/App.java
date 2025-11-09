@@ -1,20 +1,7 @@
-/*
-   Copyright 2012-2022 Michael Pozhidaev <msp@luwrain.org>
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2012-2025 Michael Pozhidaev <msp@luwrain.org>
 
-   This file is part of LUWRAIN.
-
-   LUWRAIN is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public
-   License as published by the Free Software Foundation; either
-   version 3 of the License, or (at your option) any later version.
-
-   LUWRAIN is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   General Public License for more details.
-*/
-
-package org.luwrain.app.term;
+package org.luwrain.app.linux_term;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -27,7 +14,7 @@ import org.luwrain.core.*;
 import org.luwrain.linux.*;
 import org.luwrain.app.base.*;
 
-import org.luwrain.app.term.Strings;
+//import org.luwrain.app.term.Strings;
 
 public final class App extends AppBase<Strings>
 {
@@ -44,7 +31,7 @@ public final class App extends AppBase<Strings>
 
     public App(TermInfo termInfo)
     {
-	super(Strings.NAME, Strings.class, "luwrain.linux.term");
+	super(Strings.class, "luwrain.linux.term");
 	NullCheck.notNull(termInfo, "termInfo");
 	this.termInfo = termInfo;
 	this.startingDir = null;
@@ -52,7 +39,7 @@ public final class App extends AppBase<Strings>
 
     public App(TermInfo termInfo, String startingDir)
     {
-	super(Strings.NAME, Strings.class, "luwrain.linux.term");
+	super(Strings.class, "luwrain.linux.term");
 	NullCheck.notNull(termInfo, "termInfo");
 	this.termInfo = termInfo;
 	this.startingDir = startingDir;

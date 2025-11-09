@@ -1,0 +1,17 @@
+
+plugins {
+  id 'java-library'
+}
+
+dependencies {
+  implementation libraries.base
+  implementation libraries.apacheBase
+  annotationProcessor libraries.autoService
+  implementation project(':luwrain-base')
+  implementation project(':luwrain')
+//  implementation (project(':luwrain-io'))
+  implementation "org.jetbrains.pty4j:pty4j:0.13.8"
+  implementation (project(':luwrain-linux'))
+  annotationProcessor (project(':luwrain-base'))
+  testImplementation libraries.junit
+}

@@ -1,30 +1,19 @@
-/*
-   Copyright 2012-2022 Michael Pozhidaev <msp@luwrain.org>
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2012-2025 Michael Pozhidaev <msp@luwrain.org>
 
-   This file is part of LUWRAIN.
-
-   LUWRAIN is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public
-   License as published by the Free Software Foundation; either
-   version 3 of the License, or (at your option) any later version.
-
-   LUWRAIN is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   General Public License for more details.
-*/
-
-package org.luwrain.app.term;
+package org.luwrain.app.linux_term;
 
 import java.util.*;
+import org.apache.logging.log4j.*;
 
 import org.luwrain.core.*;
-import org.luwrain.linux.*;
+//import org.luwrain.linux.*;
+
+import static java.util.Objects.*;
 
 final class Terminal implements Lines, HotPoint
 {
-    static private final String
-	LOG_COMPONENT = App.LOG_COMPONENT;
+    static private final Logger log = LogManager.getLogger();
 
     private final Luwrain luwrain;
     private final TermInfo termInfo;
@@ -35,10 +24,8 @@ final class Terminal implements Lines, HotPoint
 
     Terminal(Luwrain luwrain, TermInfo termInfo)
     {
-	NullCheck.notNull(luwrain, "luwrain");
-	NullCheck.notNull(termInfo, "termInfo");
-	this .luwrain = luwrain;
-	this.termInfo = termInfo;
+	this .luwrain = requireNonNull(luwrain, "luwrain can't be null");
+	this.termInfo = requireNonNull(termInfo, "termInfo can't be null");
     }
 
     void termText(String text)
@@ -94,7 +81,7 @@ final class Terminal implements Lines, HotPoint
 			hotPointX = 0;
 			continue;
 		default:
-		    Log.warning(LOG_COMPONENT, "unknown terminal command: '" + res + "'");
+		    log.warn("Unknown terminal command: '" + res + "'");
 		    continue;
 		}
 	    }

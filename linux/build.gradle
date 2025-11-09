@@ -10,10 +10,10 @@ dependencies {
   implementation libraries.apacheBase
   implementation libraries.graalvm
   annotationProcessor libraries.autoService
-  implementation (project(':luwrain-base'))
-  implementation (project(':luwrain'))
+  implementation project(':luwrain-base')
+  implementation project(':luwrain')
   implementation "net.java.dev.jna:jna:5.11.0"
-  implementation "org.jetbrains.pty4j:pty4j:0.13.8"
+//  implementation "org.jetbrains.pty4j:pty4j:0.13.8"
   testImplementation libraries.junit
 }
 
