@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // Copyright 2012-2025 Michael Pozhidaev <msp@luwrain.org>
 
 package org.luwrain.linux;
@@ -8,6 +8,8 @@ import java.util.*;
 
 import org.luwrain.core.*;
 import org.luwrain.util.*;
+
+import static org.luwrain.util.LineIterator.*;
 
 public final class SysDevicesList
 {
@@ -91,7 +93,7 @@ public final class SysDevicesList
     static private String     readTextFile(String fileName)
     {
 	try {
-	    final String text = FileUtils.readTextFileSingleString(new File(fileName), "UTF-8");
+	    final String text = join(new File(fileName), UTF_8, System.lineSeparator());
 	    return text.replaceAll("\n", "");
 	}
 	catch(IOException e)

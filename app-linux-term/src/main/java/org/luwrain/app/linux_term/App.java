@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // Copyright 2012-2025 Michael Pozhidaev <msp@luwrain.org>
 
 package org.luwrain.app.linux_term;
@@ -6,19 +6,19 @@ package org.luwrain.app.linux_term;
 import java.util.*;
 import java.util.concurrent.*;
 import java.io.*;
+import org.apache.logging.log4j.*;
 
 import com.pty4j.*;
 import com.pty4j.unix.*;
 
 import org.luwrain.core.*;
-import org.luwrain.linux.*;
 import org.luwrain.app.base.*;
 
-//import org.luwrain.app.term.Strings;
+import static java.util.Objects.*;
 
 public final class App extends AppBase<Strings>
 {
-    static final String LOG_COMPONENT = "term";
+    static private final Logger log = LogManager.getLogger();
     static private final long LISTENING_DELAY = 10;
 
     final TermInfo termInfo;
@@ -32,16 +32,14 @@ public final class App extends AppBase<Strings>
     public App(TermInfo termInfo)
     {
 	super(Strings.class, "luwrain.linux.term");
-	NullCheck.notNull(termInfo, "termInfo");
-	this.termInfo = termInfo;
+	this.termInfo = requireNonNull(termInfo, "termInfo can't be null");
 	this.startingDir = null;
     }
 
     public App(TermInfo termInfo, String startingDir)
     {
 	super(Strings.class, "luwrain.linux.term");
-	NullCheck.notNull(termInfo, "termInfo");
-	this.termInfo = termInfo;
+	this.termInfo = requireNonNull(termInfo, "termInfo can't be null");
 	this.startingDir = startingDir;
     }
 
@@ -54,7 +52,6 @@ public final class App extends AppBase<Strings>
 				    .setDirectory((this.startingDir != null && !startingDir.isEmpty())?startingDir:getLuwrain().getProperty("luwrain.dir.userhome"))
 				    .setConsole(false)
 				    .start());
-	//	Log.debug(LOG_COMPONENT, "pty created, pid=" + pty.getPid() + ", running=" + pty.isRunning());
 	getLuwrain().executeBkg(new FutureTask<>(()->readOutput(), null));
 		getLuwrain().executeBkg(new FutureTask<>(()->listening(), null));
 	setAppName(getStrings().appName());
@@ -70,11 +67,10 @@ public final class App extends AppBase<Strings>
 		final InputStreamReader r = new InputStreamReader(is, "UTF-8");
 		while(pty.isRunning())
 		{
-
 			final int c = r.read();
 			if (c < 0)
 			{
-			    Log.debug(LOG_COMPONENT, "negative character from the terminal: " + c);
+			    log.debug("Negative character from the terminal: " + c);
 			    break;
 			}
 					    synchronized(App.this) {
@@ -82,7 +78,7 @@ public final class App extends AppBase<Strings>
 			this.latestOutputTimestamp = new Date().getTime();
 		    }
 		    		}
-		Log.debug(LOG_COMPONENT, "closing the terminal");
+		log.debug("Closing the terminal");
 		//FIXME: Read complete output
 		r.close();
 		is.close();
@@ -93,7 +89,7 @@ public final class App extends AppBase<Strings>
 		{
 		    Thread.currentThread().interrupt();
 		}
-		Log.debug(LOG_COMPONENT, "exit value is " + pty.exitValue());
+		log.debug("Exit value is " + pty.exitValue());
 	    }
 	    catch(Exception e)
 	    {
@@ -102,7 +98,7 @@ public final class App extends AppBase<Strings>
 	}
 	catch(Throwable t)
 	{
-	    Log.error(LOG_COMPONENT, "pty: " + t.getClass().getName() + ":" + t.getMessage());
+	    log.error("PPTY failure", t);
 	}
     }
 
@@ -117,6 +113,7 @@ public final class App extends AppBase<Strings>
 		catch(InterruptedException e)
 		{
 		    Thread.currentThread().interrupt();
+		    return;
 		}
 		final String output;
 		synchronized(App.this) { 
@@ -135,7 +132,7 @@ public final class App extends AppBase<Strings>
 	    }
 	}
 	finally {
-	    Log.debug(LOG_COMPONENT, "finishing listening thread, running=" + pty.isRunning());
+	    log.debug("Finishing listening thread, running=" + pty.isRunning());
 	    synchronized(App.this) {
 		final String output = new String(this.termOutput);
 		this.termOutput = new StringBuilder();
@@ -151,7 +148,6 @@ public final class App extends AppBase<Strings>
 void sendChar(char ch)
     {
 	try {
-
 	    	if (ch < 32)
 	{
 	    pty.getOutputStream().write((byte)ch);

@@ -45,14 +45,14 @@ class SysDevice extends SimpleArea implements SectionArea
     private void fillData()
     {
 	update((lines)->{
-		lines.addLine("Тип: " + device.type);
-		lines.addLine("Класс: " + device.cls);
-		lines.addLine("Идентификатор: " + device.id);
-		lines.addLine("Производитель: " + device.vendor);
-		lines.addLine("Модель: " + device.model);
-		lines.addLine("Драйвер: " + device.driver);
-		lines.addLine("Модуль: " + device.module);
-		lines.addLine("");
+		lines.add("Тип: " + device.type);
+		lines.add("Класс: " + device.cls);
+		lines.add("Идентификатор: " + device.id);
+		lines.add("Производитель: " + device.vendor);
+		lines.add("Модель: " + device.model);
+		lines.add("Драйвер: " + device.driver);
+		lines.add("Модуль: " + device.module);
+		lines.add("");
 	    });
     }
 

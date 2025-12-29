@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // Copyright 2012-2025 Michael Pozhidaev <msp@luwrain.org>
 
 package org.luwrain.linux;
@@ -7,10 +7,8 @@ import java.io.*;
 import java.util.*;
 import org.apache.logging.log4j.*;
 
-//import org.luwrain.core.*;
-
 import static java.util.Objects.*;
-import static org.luwrain.util.FileUtils.*;
+import static org.luwrain.util.LineIterator.*;
 
 public final class BlockDevices
 {
@@ -37,9 +35,9 @@ public final class BlockDevices
 		    continue;
 		if (new File(f, "dm").exists()) //Appears on crypt devices
 		    continue;
-		if (readTextFileSingleString(removable, "UTF-8").trim().equals("1"))
+		if (join(removable, UTF_8, System.lineSeparator()).trim().equals("1"))
 		    continue;
-		final Integer capValue = Integer.parseInt(readTextFileSingleString(cap, "UTF-8").trim(), 16);
+		final Integer capValue = Integer.parseInt(join(cap, UTF_8, System.lineSeparator()).trim(), 16);
 		if ((capValue.intValue() & 0x0010) == 0) //The device is down
 		    continue;
 		if ((capValue.intValue() & 0x0200) != 0) //Partition scanning is disabled. Used for loop devices in their default settings
@@ -61,7 +59,7 @@ public final class BlockDevices
     {
 	requireNonNull(dev, "dev can't be null");
 	try {
-	    return readTextFileSingleString(new File(new File(SYS_BLOCK, dev), "device/model"), "UTF-8").trim();
+	    return join(new File(new File(SYS_BLOCK, dev), "device/model"), "UTF-8", System.lineSeparator()).trim();
 	}
 	catch(IOException e)
 	{
@@ -74,7 +72,7 @@ public final class BlockDevices
     {
 	requireNonNull(dev, "dev can't be null");
 	try {
-	    final String sizeStr = readTextFileSingleString(new File(new File(SYS_BLOCK, dev), "size"), UTF_8).trim();
+	    final String sizeStr = join(new File(new File(SYS_BLOCK, dev), "size"), UTF_8, System.lineSeparator()).trim();
 	    final Long l = Long.parseLong(sizeStr);
 	    return l.longValue() * 512;
 	}

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // Copyright 2012-2025 Michael Pozhidaev <msp@luwrain.org>
 
 package org.luwrain.app.linux_term;
@@ -7,12 +7,13 @@ import java.util.*;
 import org.apache.logging.log4j.*;
 
 import org.luwrain.core.*;
-//import org.luwrain.linux.*;
 
 import static java.util.Objects.*;
 
 final class Terminal implements Lines, HotPoint
 {
+    static private final char ESCAPE = (char)27;
+    static private final int MAX_CMD_LEN = 16;
     static private final Logger log = LogManager.getLogger();
 
     private final Luwrain luwrain;
@@ -20,7 +21,7 @@ final class Terminal implements Lines, HotPoint
     private List<String> lines = new ArrayList<>();
     private int hotPointX = 0;
     private int hotPointY = 0;
-    private StringBuilder seq = new StringBuilder();
+    private StringBuilder escapeSeq = null;
 
     Terminal(Luwrain luwrain, TermInfo termInfo)
     {
@@ -30,46 +31,65 @@ final class Terminal implements Lines, HotPoint
 
     void termText(String text)
     {
+	log.trace("Term text " + text.replaceAll("\u0008", "(BS)"));
+	if (escapeSeq != null)
+	    log.trace("Escape seq: " + new String(escapeSeq)); else
+	    log.trace("No escape seq");
 	if (text.isEmpty())
 	    return;
 	if (lines.isEmpty())
 	    lines.add("");
-	final StringBuilder speaking = new StringBuilder();
-	try {
 	    for(int i = 0;i < text.length();i++)
 	    {
 		final char ch = text.charAt(i);
-		this.seq.append(ch);
-		final String seqStr = new String(this.seq);
-		final String res = termInfo.find(seqStr);
-				//if seq contains the beginning of a some known command, we have to try more characters
-		if (res != null && res.isEmpty())
-		    continue;
-		    this.seq = new StringBuilder();
-		if (res == null)
+		if (ch == ESCAPE)
 		{
-		    speaking.append(seqStr);
-		    switch(seqStr)
-		    {
-		    case "\u0007":
-			//Doing nothing, sound will be played through speaking
-			continue;
-		    case "\b":
-			backspace();
-			continue;
-		    case "\r":
-			continue;
-		    case "\n":
-			lines.add("");
-			hotPointY++;
-			hotPointX = 0;
-			continue;
-		    default:
-			lines.set(lines.size() - 1, lines.get(lines.size() - 1) + seqStr);
-			hotPointX += seqStr.length();
-			continue;
-		    }
+		    if (escapeSeq != null)
+			onText( "(PREV " + new String(escapeSeq) + ")");
+		    escapeSeq = new StringBuilder();
+		    escapeSeq.append(ch);
+		    continue;
 		}
+		if (escapeSeq != null && escapeSeq.length() == MAX_CMD_LEN)
+		{
+		    onText("(LONG " + new String(escapeSeq) + ")" + ch);
+		    escapeSeq = null;
+		    continue;
+		}
+		if (escapeSeq == null)
+		{
+		    onChar(ch);
+		    continue;
+		}
+
+		escapeSeq.append(ch);
+		    final var s = new String(escapeSeq);
+		    var m = TermInfo.DCH.matcher(s);
+		    if (m.find())
+		    {
+			onText("[DCH " + m.group(1) + "]");
+			escapeSeq = null;
+continue;
+		    }
+
+		    m = TermInfo.ICH.matcher(s);
+		    		    if (m.find())
+		    {
+			onText("[ICH " + m.group(1) + "]");
+			escapeSeq = null;
+continue;
+		    }
+
+				    
+		    final var cmd = termInfo.find(s);
+		    if (cmd == null)
+			continue;
+
+		    		    escapeSeq = null;
+		    onText("[" + cmd + "]");
+
+	    }
+	    /*
 		switch(res)
 		{
 		case "color":
@@ -84,11 +104,42 @@ final class Terminal implements Lines, HotPoint
 		    log.warn("Unknown terminal command: '" + res + "'");
 		    continue;
 		}
-	    }
-	}
-	finally {
-	    speak(new String(speaking));
-	}
+	    */
+    }
+
+    void onText(String text)
+    {
+	for(int i = 0;i < text.length();i++)
+	    onChar(text.charAt(i));
+    }
+
+    void onChar(char ch)
+    {    
+		    switch(ch)
+		    {
+		    case (char)7:
+			//Doing nothing, sound will be played through speaking
+return;
+		    case '\b':
+						onBackspace();
+return;
+		    case '\r':
+return;
+		    case '\n':
+			lines.add("");
+			hotPointY++;
+			hotPointX = 0;
+return;
+		    default:
+			appendText(String.valueOf(ch));
+			return;
+		    }
+    }
+
+    void appendText(String text)
+    {
+				lines.set(lines.size() - 1, lines.get(lines.size() - 1) + text);
+				hotPointX += text.length();
     }
 
     private void speak(String text)
@@ -139,16 +190,20 @@ final class Terminal implements Lines, HotPoint
 	return lines.get(index);
     }
 
-    private void backspace()
+void onBackspace()
     {
+	if (hotPointX == 0)
+	    return;
 	if (hotPointY >= lines.size())
+	{
+	    log.warn("Hot point Y is outside of text area");
 	    return;
+	}
 	final String line = lines.get(hotPointY);
-	if (hotPointX == 0 || hotPointX > line.length())
-	    return;
+	hotPointX = Math.min(hotPointX, line.length());
 	final char ch = line.charAt(hotPointX - 1);
 	lines.set(hotPointY, line.substring(0, hotPointX -1) + line.substring(hotPointX));
 	hotPointX--;
-	luwrain.setEventResponse(DefaultEventResponse.letter(ch));
+	//	luwrain.setEventResponse(DefaultEventResponse.letter(ch));
     }
 }

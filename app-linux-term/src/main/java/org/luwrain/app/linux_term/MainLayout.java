@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BUSL-1.1
 // Copyright 2012-2025 Michael Pozhidaev <msp@luwrain.org>
 
 package org.luwrain.app.linux_term;
@@ -10,8 +10,6 @@ import org.luwrain.core.events.*;
 import org.luwrain.controls.*;
 import org.luwrain.util.*;
 import org.luwrain.app.base.*;
-
-//import org.luwrain.app.term.Strings;
 
 final class MainLayout extends LayoutBase
 {
@@ -29,7 +27,6 @@ final class MainLayout extends LayoutBase
 	this.termArea = new NavigationArea(new DefaultControlContext(app.getLuwrain())){
 		@Override public boolean onInputEvent(InputEvent event)
 		{
-		    NullCheck.notNull(event, "event");
 		    if (event.isSpecial() && !event.isModified())
 			switch(event.getSpecial())
 			{
@@ -45,6 +42,20 @@ app.sendChar('\t');
 			case ESCAPE:
 			    app.closeApp();
 			    return true;
+			    			    		    			case 			    ALTERNATIVE_ARROW_UP:
+app.sendChar((char)0x1b);
+app.sendChar((char)0x5b);
+app.sendChar((char)0x41);
+			    return true;
+
+			    			    			    		    			case 			    ALTERNATIVE_ARROW_LEFT:
+app.sendChar((char)0x1b);
+app.sendChar((char)0x5b);
+app.sendChar((char)0x44);
+
+			    return true;
+
+
 			}
 		    if (!event.isSpecial() && event.withControlOnly())
 			switch(event.getChar())
@@ -52,6 +63,9 @@ app.sendChar('\t');
 			case 'd':
 			    app.sendChar('\u0004');
 			    return true;
+
+
+			    
 			}
 		    if (!event.isSpecial() && (!event.isModified() || event.withShiftOnly()))
 		    {
@@ -61,15 +75,15 @@ app.sendChar('\t');
 		    		    if (app.onInputEvent(this, event))
 			return true;
 		    return super.onInputEvent(event);
+
+
+			    
 		    /*
 			case 			    ALTERNATIVE_ARROW_LEFT:
 			    term.writeCode(Terminal.Codes.ARROW_LEFT);
 			    return true;
 			case 			    ALTERNATIVE_ARROW_RIGHT:
 			    term.writeCode(Terminal.Codes.ARROW_RIGHT);
-			    return true;
-			case 			    ALTERNATIVE_ARROW_UP:
-			    term.writeCode(Terminal.Codes.ARROW_UP);
 			    return true;
 			case 			    ALTERNATIVE_ARROW_DOWN:
 			    term.writeCode(Terminal.Codes.ARROW_DOWN);
@@ -92,7 +106,6 @@ app.sendChar('\t');
 		}
 		@Override public boolean onSystemEvent(SystemEvent event)
 		{
-		    NullCheck.notNull(event, "event");
 		    if (event.getType() == SystemEvent.Type.REGULAR)
 			switch(event.getCode())
 			{
@@ -155,7 +168,6 @@ app.sendChar('\t');
 
     void termText(String text)
     {
-	NullCheck.notNull(text, "text");
 	term.termText(text.replaceAll("\\[\\?2004[hl]", ""));
 	termArea.setHotPoint(term.getHotPointX(), term.getHotPointY());
     }
