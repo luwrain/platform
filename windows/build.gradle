@@ -1,9 +1,9 @@
 
 plugins {
-    id 'java-library'
+  id 'java-library'
+  id 'maven-publish'
   id 'io.freefair.lombok' version '8.6'
-//        id 'org.openjfx.javafxplugin' version '0.0.13'
-        id 'org.openjfx.javafxplugin' version '0.1.0'
+    id 'org.openjfx.javafxplugin' version '0.1.0'
 }
 
 dependencies {
@@ -19,3 +19,22 @@ javafx {
 	version = ver.javafx
 	modules = [ 'javafx.controls' ]
 }
+
+
+publishing {
+  publications {
+    mavenJava(MavenPublication) {
+      groupId = 'org.luwrain'
+      artifactId = 'luwrain-windows'
+      version = ver.lwr
+      from components.java
+    }
+  }
+  repositories {
+    maven {
+      url = uri(mavenDestRepo)
+    }
+  }
+}
+
+
