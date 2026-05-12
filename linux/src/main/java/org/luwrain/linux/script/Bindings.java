@@ -6,6 +6,7 @@ package org.luwrain.linux.script;
 import org.graalvm.polyglot.*;
 
 import org.luwrain.core.*;
+import static java.util.Objects.*;
 
 public final class Bindings implements org.luwrain.script.core.Bindings
 {
@@ -13,14 +14,14 @@ public final class Bindings implements org.luwrain.script.core.Bindings
 
     public Bindings(Luwrain luwrain)
     {
-	NullCheck.notNull(luwrain, "luwrain");
+	requireNonNull(luwrain, "luwrain can't be null");
 	this.luwrain = luwrain;
     }
 
     @Override public void onBindings(Value value, Object syncObj)
     {
-	NullCheck.notNull(value, "value");
-	NullCheck.notNull(syncObj, "syncObj");
+	requireNonNull(value, "value can't be null");
+	requireNonNull(syncObj, "syncObj can't be null");
 	value.putMember("Linux", new LinuxObj(luwrain, syncObj));
     }
 }

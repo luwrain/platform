@@ -13,6 +13,7 @@ import org.luwrain.core.*;
 import org.luwrain.linux.*;
 //import org.luwrain.script.core.*;
 
+import static java.util.Objects.*;
 import static org.luwrain.script.Hooks.*;
 
 public final class UdisksCli
@@ -32,7 +33,7 @@ public final class UdisksCli
 
     public UdisksCli(Caller caller)
     {
-	NullCheck.notNull(caller, "caller");
+	requireNonNull(caller, "caller can't be null");
 	this.caller = caller;
     }
 

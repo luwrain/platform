@@ -5,6 +5,7 @@ package org.luwrain.linux;
 
 import org.luwrain.core.*;
 import org.luwrain.util.*;
+import static java.util.Objects.*;
 
 public interface Settings
 {
@@ -25,7 +26,7 @@ public interface Network
 
     static public Network createNetwork(Registry registry)
     {
-	NullCheck.notNull(registry, "registry");
+	requireNonNull(registry, "registry can't be null");
 	return RegistryProxy.create(registry, NETWORK_PATH, Network.class);
     }
 

@@ -9,6 +9,8 @@ import java.io.*;
 import org.luwrain.core.*;
 import org.luwrain.linux.*;
 
+import static java.util.Objects.*;
+
 public final class NmCli
 {
     static private final String
@@ -30,8 +32,8 @@ public final class NmCli
 	private final int signalLevel;
 	Network(String name, String protectionType, boolean connected, int signalLevel)
 	{
-	    NullCheck.notNull(name, "name");
-	    NullCheck.notNull(protectionType, "protectionType");
+	    requireNonNull(name, "name can't be null");
+	    requireNonNull(protectionType, "protectionType can't be null");
 	    this.name = name;
 	    this.protectionType = protectionType;
 	    this.signalLevel = signalLevel;
@@ -48,7 +50,7 @@ public final class NmCli
 
     public NmCli(Caller caller)
     {
-	NullCheck.notNull(caller, "caller");
+	requireNonNull(caller, "caller can't be null");
 	this.caller = caller;
     }
 

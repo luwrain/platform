@@ -9,6 +9,8 @@ import org.luwrain.core.events.*;
 
 import org.luwrain.core.*;
 
+import static java.util.Objects.*;
+
 final class FifoInputListening
 {
     static private final String LOG_COMPONENT = Linux.LOG_COMPONENT;
@@ -25,8 +27,8 @@ final class FifoInputListening
 
     FifoInputListening(Luwrain luwrain, Linux linux, String fileName)
     {
-	NullCheck.notNull(luwrain, "luwrain");
-	NullCheck.notNull(linux, "linux");
+	requireNonNull(luwrain, "luwrain can't be null");
+	requireNonNull(linux, "linux can't be null");
 	NullCheck.notEmpty(fileName, "fileName");
 	this.luwrain = luwrain;
 	this.linux = linux;
@@ -73,7 +75,7 @@ final class FifoInputListening
 
     private void processLine(String line)
     {
-	NullCheck.notNull(line, "line");
+	requireNonNull(line, "line can't be null");
 
 	//command
 	if (line.startsWith(COMMAND_PREFIX))

@@ -9,6 +9,8 @@ import java.nio.charset.*;
 
 import org.luwrain.core.NullCheck;
 
+import static java.util.Objects.*;
+
 public class ConsoleReader
 {
     protected List<Item> items = new LinkedList<Item>();
@@ -16,7 +18,7 @@ public class ConsoleReader
 
     public void read(Reader reader) throws IOException
     {
-	NullCheck.notNull(reader, "reader");
+	requireNonNull(reader, "reader can't be null");
 	while (reader.ready())
 	{
 	    final int c = reader.read();
@@ -59,7 +61,7 @@ public class ConsoleReader
 
     protected void onEscapeSeq(Reader reader) throws IOException
     {
-	NullCheck.notNull(reader, "reader");
+	requireNonNull(reader, "reader can't be null");
 	int c = reader.read();
 	if (c < 0)
 	    return;
@@ -111,14 +113,14 @@ public class ConsoleReader
 
 	public Item(Type type)
 	{
-	    NullCheck.notNull(type, "type");
+	    requireNonNull(type, "type can't be null");
 	    this.type = type;
 	    this.text = null;
 	}
 
 	public Item(String text)
 	{
-	    NullCheck.notNull(text, "text");
+	    requireNonNull(text, "text can't be null");
 	    this.type = Type.TEXT;
 	    this.text = text;
 	}

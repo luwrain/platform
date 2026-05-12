@@ -14,6 +14,7 @@ import org.luwrain.script.core.*;
 import org.luwrain.script.*;
 import org.luwrain.linux.*;
 
+import static java.util.Objects.*;
 import static org.luwrain.script.ScriptUtils.*;
 
 final class LinuxObj implements ProxyObject
@@ -30,8 +31,8 @@ final class LinuxObj implements ProxyObject
 
     LinuxObj(Luwrain luwrain, Object syncObj)
     {
-	NullCheck.notNull(luwrain, "luwrain");
-	NullCheck.notNull(syncObj, "syncObj");
+	requireNonNull(luwrain, "luwrain can't be null");
+	requireNonNull(syncObj, "syncObj can't be null");
 	this.luwrain = luwrain;
 	this.syncObj = syncObj;
     }

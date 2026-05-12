@@ -10,6 +10,8 @@ import org.apache.logging.log4j.*;
 
 import org.luwrain.core.*;
 
+import static java.util.Objects.*;
+
 public final class BashProcess
 {
     static private final Logger log = LogManager.getLogger();
@@ -39,8 +41,8 @@ public final class BashProcess
     public BashProcess(String command, String dir, Set<Flags> flags, Listener listener)
     {
 	NullCheck.notEmpty(command, "command");
-	NullCheck.notNull(flags, "flags");
-	NullCheck.notNull(listener, "listener");
+	requireNonNull(flags, "flags can't be null");
+	requireNonNull(listener, "listener can't be null");
 	this.command = command;
 	this.dir = dir != null?dir:"/";
 	this.flags = flags;

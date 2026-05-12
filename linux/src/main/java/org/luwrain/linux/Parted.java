@@ -9,6 +9,7 @@ import java.util.regex.*;
 
 import org.luwrain.core.*;
 
+import static java.util.Objects.*;
 import static org.luwrain.util.FileUtils.*;
 
 public final class Parted
@@ -32,7 +33,7 @@ public final class Parted
     public Parted(String device, Caller caller)
     {
 	NullCheck.notEmpty(device, "device");
-	NullCheck.notNull(caller, "caller");
+	requireNonNull(caller, "caller can't be null");
 	this.device = device;
 	this.caller = caller;
     }

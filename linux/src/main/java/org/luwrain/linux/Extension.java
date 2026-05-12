@@ -13,6 +13,8 @@ import org.luwrain.script.core.*;
 import org.luwrain .script.*;
 import org.luwrain.linux.services.*;
 
+import static java.util.Objects.*;
+
 @AutoService(org.luwrain.core.Extension.class)
 public final class Extension extends EmptyExtension
 {
@@ -75,7 +77,7 @@ public final class Extension extends EmptyExtension
 
     private void loadScriptCore(Luwrain luwrain)
     {
-	NullCheck.notNull(luwrain, "luwrain");
+	requireNonNull(luwrain, "luwrain can't be null");
 	this.scriptCore = new ScriptCore(luwrain, new org.luwrain.linux.script.Bindings(luwrain));
 	final File scriptsDir = luwrain.getFileProperty(Luwrain.PROP_DIR_JS);
 	if (scriptsDir == null || !scriptsDir.exists() || !scriptsDir.isDirectory())

@@ -4,6 +4,7 @@
 package org.luwrain.linux;
 
 import org.luwrain.core.*;
+import static java.util.Objects.*;
 
 public final class SysDevice
 {
@@ -29,13 +30,13 @@ public final class SysDevice
 		  String driver,
 		  String module)
     {
-	NullCheck.notNull(type, "type");
-	NullCheck.notNull(id, "id");
-	NullCheck.notNull(cls, "cls");
-	NullCheck.notNull(vendor, "vendor");
-	NullCheck.notNull(model, "model");
-	NullCheck.notNull(driver, "driver");
-	NullCheck.notNull(module, "module");
+	requireNonNull(type, "type can't be null");
+	requireNonNull(id, "id can't be null");
+	requireNonNull(cls, "cls can't be null");
+	requireNonNull(vendor, "vendor can't be null");
+	requireNonNull(model, "model can't be null");
+	requireNonNull(driver, "driver can't be null");
+	requireNonNull(module, "module can't be null");
 	this.type = type;
 	this.id = id;
 	this.cls = cls;

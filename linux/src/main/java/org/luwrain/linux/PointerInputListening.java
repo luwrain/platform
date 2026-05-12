@@ -9,6 +9,8 @@ import org.luwrain.core.events.*;
 
 import org.luwrain.core.*;
 
+import static java.util.Objects.*;
+
 class PointerInputListening
 {
     static private final String LOG_COMPONENT = Linux.LOG_COMPONENT;
@@ -28,7 +30,7 @@ class PointerInputListening
 
     PointerInputListening(Luwrain luwrain, String fileName)
     {
-	NullCheck.notNull(luwrain, "luwrain");
+	requireNonNull(luwrain, "luwrain can't be null");
 	NullCheck.notEmpty(fileName, "fileName");
 	this.luwrain = luwrain;
 	this.fileName = fileName;

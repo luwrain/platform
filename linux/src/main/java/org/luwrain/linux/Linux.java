@@ -11,6 +11,8 @@ import com.google.auto.service.*;
 import org.luwrain.core.*;
 import org.luwrain.core.events.*;
 
+import static java.util.Objects.*;
+
 @AutoService(org.luwrain.core.OperatingSystem.class)
 public final class Linux implements OperatingSystem
 {
@@ -43,7 +45,7 @@ public final class Linux implements OperatingSystem
 
     public String getProperty(String propName)
     {
-	NullCheck.notNull(propName, "propName");
+	requireNonNull(propName, "propName can't be null");
 	return "";
     }
 
@@ -59,7 +61,7 @@ public final class Linux implements OperatingSystem
 
     @Override public org.luwrain.interaction.KeyboardHandler getCustomKeyboardHandler(String subsystem)
     {
-	NullCheck.notNull(subsystem, "subsystem");
+	requireNonNull(subsystem, "subsystem can't be null");
 	switch(subsystem.toLowerCase().trim())
 	{
 	case "javafx":

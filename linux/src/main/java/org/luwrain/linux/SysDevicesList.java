@@ -9,6 +9,7 @@ import java.util.*;
 import org.luwrain.core.*;
 import org.luwrain.util.*;
 
+import static java.util.Objects.*;
 import static org.luwrain.util.LineIterator.*;
 
 public final class SysDevicesList
@@ -22,7 +23,7 @@ public final class SysDevicesList
 
     public SysDevicesList(PropertiesBase props)
     {
-	NullCheck.notNull(props, "props");
+	requireNonNull(props, "props can't be null");
 	this.props = props;
 	final File pciidsFile = props.getFileProperty("luwrain.linux.pciids");
 	if (pciidsFile != null)
