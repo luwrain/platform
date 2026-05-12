@@ -62,7 +62,8 @@ final class LinuxObj implements ProxyObject
 	final String command = ScriptUtils.asString(args[0]);
 	if (command == null)
 	    throw new ScriptException("Linux.run() takes a not null string as its first argument");
-	final BashProcess p = new BashProcess(command);
+	final BashProcessOutput output = new BashProcessOutput();
+	final BashProcess p = new BashProcess(command, output);
 	try {
 	    p.run();
 	}
@@ -71,7 +72,7 @@ final class LinuxObj implements ProxyObject
 	    throw new ScriptException(e);
 	}
 	p.waitFor();
-	return new BashProcessObj(p);
+	return new BashProcessObj(p, output);
     }
 
     private Object runAsync(Value[] args)
@@ -98,9 +99,11 @@ final class LinuxObj implements ProxyObject
 	    error = args[2];
 	} else
 	    error = null;
+	final BashProcessOutput baseOutput = new BashProcessOutput();
 	final BashProcess.Listener listener = new BashProcess.Listener(){
 		@Override public void onOutputLine(String line)
 		{
+		    baseOutput.onOutputLine(line);
 		    if (output == null)
 			return;
 		    synchronized(syncObj) {
@@ -109,6 +112,7 @@ final class LinuxObj implements ProxyObject
 		}
 		@Override public void onErrorLine(String line)
 		{
+		    baseOutput.onErrorLine(line);
 		    if (error == null)
 			return;
 		    synchronized(syncObj) {
@@ -117,6 +121,7 @@ final class LinuxObj implements ProxyObject
 		}
 		@Override public void onFinishing(int exitCode)
 		{
+		    baseOutput.onFinishing(exitCode);
 		}
 	    };
 	final BashProcess p = new BashProcess(cmd, null, EnumSet.noneOf(BashProcess.Flags.class), listener);
@@ -127,6 +132,6 @@ final class LinuxObj implements ProxyObject
 	{
 	    throw new ScriptException(e);
 	}
-	return new BashProcessObj(p);
+	return new BashProcessObj(p, baseOutput);
     }
 }

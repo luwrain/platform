@@ -56,9 +56,20 @@ public class BashProcessOutput implements BashProcess.Listener
 	return Collections.unmodifiableList(output);
     }
 
+    public String[] getOutputAsArray()
+    {
+	return output.toArray(new String[output.size()]);
+    }
+
         public List<String> getErrors()
     {
-	return Collections.unmodifiableList(errors);
+
+		return Collections.unmodifiableList(errors);
+    }
+
+    public String[] getErrorsAsArray()
+    {
+		return errors.toArray(new String[errors.size()]);
     }
 
     public boolean isFinished()

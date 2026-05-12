@@ -52,6 +52,12 @@ public final class BashProcess
 	this(command, null, flags, listener);
     }
 
+        public BashProcess(String command, Listener listener)
+    {
+	this(command, null, EnumSet.noneOf(Flags.class), listener);
+    }
+
+
     public BashProcess(String command, Set<Flags> flags)
     {
 	this(command, flags, new EmptyListener());
@@ -215,6 +221,7 @@ public final class BashProcess
 	}).start();
     }
 
+    /*
         public String[] getOutput()
     {
 	//FIXME: Checking the process finishes
@@ -226,6 +233,7 @@ public final class BashProcess
 		//FIXME: Checking the process finishes
 	return errors.toArray(new String[errors.size()]);
     }
+    */
 
     static public String escape(String value)
     {

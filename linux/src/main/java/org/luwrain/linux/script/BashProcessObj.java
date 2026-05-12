@@ -14,14 +14,17 @@ import org.luwrain.script.core.*;
 import org.luwrain.script.*;
 import org.luwrain.linux.*;
 
+import static java.util.Objects.*;
+
 final class BashProcessObj implements ProxyObject
 {
     private final BashProcess p;
+        private final BashProcessOutput output;
 
-    BashProcessObj(BashProcess p)
+    BashProcessObj(BashProcess p, BashProcessOutput output)
     {
-	NullCheck.notNull(p, "p");
-	this.p = p;
+	this.p = requireNonNull(p, "p can't be null");
+	this.output = requireNonNull(output, "output can't be null");
     }
 
     @Override public Object getMember(String name)
@@ -31,9 +34,9 @@ final class BashProcessObj implements ProxyObject
 	switch(name)
 	{
 	case "output":
-	    return ProxyArray.fromArray((Object[])p.getOutput());
+	    return ProxyArray.fromArray((Object[])output.getOutputAsArray());
 	    	case "errors":
-		    return ProxyArray.fromArray((Object[])p.getErrors());
+		    return ProxyArray.fromArray((Object[])output.getErrorsAsArray());
 	    	    	case "waitFor":
 			    return (ProxyExecutable)this::waitFor;
 	default:

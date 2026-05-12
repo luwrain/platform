@@ -194,12 +194,13 @@ m = RE_PROP_CHANGED.matcher(line);
 
     private void init() throws IOException
     {
-	final BashProcess p = new BashProcess("udisksctl dump", EnumSet.of(BashProcess.Flags.LOG_OUTPUT));
+	final var processOutput = new BashProcessOutput();
+	final var p = new BashProcess("udisksctl dump", processOutput);
 	p.run();
 	final int exitCode = p.waitFor();
 	if (exitCode != 0)
 	    throw new IOException("udisksctl dump returned exit code " + String.valueOf(exitCode));
-	final String[] output = p.getOutput();
+	final var output = processOutput.getOutput();
 	for(String l: output)
 	{
 	    final String line = l.trim();

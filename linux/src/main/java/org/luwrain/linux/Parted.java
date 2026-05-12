@@ -84,12 +84,13 @@ public final class Parted
 	    if (args != null)
 		for(String a: args)
 		    cmd.append(" ").append(BashProcess.escape(a));
-	    final BashProcess p = new BashProcess(new String(cmd), EnumSet.of(BashProcess.Flags.ROOT));
+	    final var processOutput = new BashProcessOutput();
+	    final var p = new BashProcess(new String(cmd), EnumSet.of(BashProcess.Flags.ROOT), processOutput);
 	    p.run();
 	    final int exitCode = p.waitFor();
 	    if (exitCode != 0)
 		throw new IOException("nmcli returned " + String.valueOf(exitCode));
-	    return p.getOutput();
+	    return processOutput.getOutputAsArray();
 	};
     }
 

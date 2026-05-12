@@ -64,7 +64,8 @@ final class MainLayout extends LayoutBase implements ConsoleArea.ClickHandler<St
 	final Matcher m = ENTRY_PATTERN.matcher(item.trim());
 	if (!m.find())
 	    return false;
-	final var p = new BashProcess("man " + BashProcess.escape(m.group(2)) + " " + BashProcess.escape(m.group(1)));
+	final var output = new BashProcessOutput();
+	final var p = new BashProcess("man " + BashProcess.escape(m.group(2)) + " " + BashProcess.escape(m.group(1)), output);
 	try {
 	    p.run();
 	}
@@ -77,11 +78,11 @@ final class MainLayout extends LayoutBase implements ConsoleArea.ClickHandler<St
 	if (exitCode != 0)
 	{
 	    app.getLuwrain().playSound(Sounds.ERROR);
-	    for(String s: p.getErrors())
+	    for(String s: output.getErrors())
 		log.error("Man: " + s);
 	    return true;
 	}
-	pageArea.setLines(p.getOutput());
+	pageArea.setLines(output.getOutputAsArray());
 	pageArea.setHotPoint(0, 0);
 	setActiveArea(pageArea);
 	return true;
@@ -99,7 +100,8 @@ final class MainLayout extends LayoutBase implements ConsoleArea.ClickHandler<St
 
     boolean search(String query)
     {
-	final BashProcess p = new BashProcess("man -k " + BashProcess.escape(query.trim()));
+	final var output = new BashProcessOutput();
+	final BashProcess p = new BashProcess("man -k " + BashProcess.escape(query.trim()), output);
 	try {
 	    p.run();
 	}
@@ -111,14 +113,14 @@ final class MainLayout extends LayoutBase implements ConsoleArea.ClickHandler<St
 	final int exitCode = p.waitFor();
 	if (exitCode != 0)
 	{
-	    final String[] errors = p.getErrors();
+	    final String[] errors = output.getErrorsAsArray();
 	    if (errors.length > 0)
 		app.getLuwrain().message(errors[0], Luwrain.MessageType.ERROR); else
 		app.getLuwrain().playSound(Sounds.ERROR);
 	    return true;
 	}
 	app.getLuwrain().playSound(Sounds.OK);
-	pages = p.getOutput();
+	pages = output.getOutputAsArray();
 	return true;
     }
 

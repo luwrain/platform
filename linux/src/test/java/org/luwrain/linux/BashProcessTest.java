@@ -43,10 +43,11 @@ public class BashProcessTest
 
     @Test public void output() throws Exception
     {
-	final BashProcess b = new BashProcess("echo proba");
+	final BashProcessOutput output = new BashProcessOutput();
+	final BashProcess b = new BashProcess("echo proba", output);
 	b.run();
 	assertEquals(0, b.waitFor());
-	final String[] res = b.getOutput();
+	final String[] res = output.getOutputAsArray();
 	assertNotNull(res);
 	assertEquals(1, res.length);
 	assertEquals("proba", res[0]);
