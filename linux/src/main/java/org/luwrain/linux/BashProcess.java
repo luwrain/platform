@@ -16,7 +16,7 @@ public final class BashProcess
 {
     static private final Logger log = LogManager.getLogger();
 
-    public enum Flags {ROOT, LOG_OUTPUT, LOG_ERRORS};
+    public enum Flags {ROOT};
 
     public interface Listener
     {
@@ -32,8 +32,6 @@ public final class BashProcess
     private Process p = null;
     private int pid = -1;
     private int exitCode = -1;
-    private final ArrayList<String> output = new ArrayList<>();
-    private final ArrayList<String> errors = new ArrayList<>();
     private final AtomicBoolean done = new AtomicBoolean(false);
     private final AtomicBoolean doneOutput = new AtomicBoolean(false);
     private final AtomicBoolean doneErrors = new AtomicBoolean(false);
@@ -67,7 +65,7 @@ public final class BashProcess
 
     public BashProcess(String command)
     {
-	this(command, EnumSet.of(Flags.LOG_OUTPUT, Flags.LOG_ERRORS));
+	this(command, EnumSet.noneOf(Flags.class));
     }
 
     public void run() throws IOException
@@ -165,15 +163,12 @@ public final class BashProcess
 
     private void readOutput(BufferedReader r)
     {
-	final boolean logOutput = flags.contains(Flags.LOG_OUTPUT);
 	new Thread(()->{
 		try {
 		    try {
 			String line = r.readLine();
 			while (line != null)
 			{
-			    if (logOutput)
-				output.add(line);
 			    listener.onOutputLine(line);
 			    line = r.readLine();
 			}
@@ -195,15 +190,12 @@ public final class BashProcess
 
     private void readErrors(BufferedReader r)
     {
-		final boolean logErrors = flags.contains(Flags.LOG_OUTPUT);
 	new Thread(()->{
 		try {
 		    try {
 			String line = r.readLine();
 			while (line != null)
 			{
-			    if (logErrors)
-				errors.add(line);
 			    listener.onErrorLine(line);
 			    line = r.readLine();
 			}
@@ -222,20 +214,6 @@ public final class BashProcess
 		}
 	}).start();
     }
-
-    /*
-        public String[] getOutput()
-    {
-	//FIXME: Checking the process finishes
-	return output.toArray(new String[output.size()]);
-    }
-
-    public String[] getErrors()
-    {
-		//FIXME: Checking the process finishes
-	return errors.toArray(new String[errors.size()]);
-    }
-    */
 
     static public String escape(String value)
     {

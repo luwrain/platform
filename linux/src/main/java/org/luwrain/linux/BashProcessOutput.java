@@ -30,14 +30,14 @@ public class BashProcessOutput implements BashProcess.Listener
 	this(false, false);
     }
 
-    @Override public void onOutputLine(String line)
+    @Override public synchronized void onOutputLine(String line)
     {
 	if (skipEmpty && line.isEmpty())
 	    return;
 	output.add(line);
     }
     
-    @Override public void onErrorLine(String line)
+    @Override public synchronized void onErrorLine(String line)
     {
 		if (skipEmpty && line.isEmpty())
 	    return;
@@ -56,18 +56,17 @@ public class BashProcessOutput implements BashProcess.Listener
 	return Collections.unmodifiableList(output);
     }
 
-    public String[] getOutputAsArray()
+    public synchronized String[] getOutputAsArray()
     {
 	return output.toArray(new String[output.size()]);
     }
 
         public List<String> getErrors()
     {
-
 		return Collections.unmodifiableList(errors);
     }
 
-    public String[] getErrorsAsArray()
+    public synchronized String[] getErrorsAsArray()
     {
 		return errors.toArray(new String[errors.size()]);
     }

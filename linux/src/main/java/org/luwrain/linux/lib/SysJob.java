@@ -15,10 +15,10 @@ import static java.util.Objects.*;
 import static java.util.stream.Collectors.*;
 import static org.luwrain.core.NullCheck.*;
 
+//Does not any escaping of the command
 @AutoService(JobLauncher.class)
 public final class SysJob implements JobLauncher
 {
-
     @Override public Job launch(Job.Listener listener, String[] args, String dir)
     {
 	requireNonNull(listener, "listener can't be null");
