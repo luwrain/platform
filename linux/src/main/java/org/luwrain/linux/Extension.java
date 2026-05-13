@@ -44,14 +44,16 @@ public final class Extension extends EmptyExtension
 	    Log.error(LOG_COMPONENT, "unable to load terminfo: " + e.getClass().getName() + ": " + e.getMessage());
 	    this.termInfo = null;
 	}
+	/*
 	try {
-	    udisksMonitor = new UdisksCliMonitor(luwrain);
+	    	    udisksMonitor = new UdisksCliMonitor(luwrain);
 	}
 	catch(IOException e)
 	{
 	    Log.info(LOG_COMPONENT, "no udisks monitor service, the process can't be launched");
 	    udisksMonitor = null;
 	}
+	*/
 	final List<PointerInputListening> inputs = new ArrayList<>();
 	final List<FifoInputListening> fifos = new ArrayList<>();
 	/*
@@ -66,6 +68,7 @@ public final class Extension extends EmptyExtension
 	    l.run();
 	this.pointerInputs = inputs.toArray(new PointerInputListening[inputs.size()]);
 	this.fifoInputs = fifos.toArray(new FifoInputListening[fifos.size()]);
+
 	return null;
     }
 

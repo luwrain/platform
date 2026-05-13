@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: BUSL-1.1
-// Copyright 2012-2025 Michael Pozhidaev <msp@luwrain.org>
+// Copyright 2012-2026 Michael Pozhidaev <msp@luwrain.org>
 
 package org.luwrain.app.linux_term;
 
 import java.util.*;
+import org.apache.logging.log4j.*;
 
 import org.luwrain.core.*;
 import org.luwrain.core.events.*;
@@ -13,8 +14,10 @@ import org.luwrain.app.base.*;
 
 final class MainLayout extends LayoutBase
 {
+    static private final Logger log = LogManager.getLogger();
+    
     private final App app;
-    private final Terminal term ;
+    private final TermInterpreter term ;
     private final NavigationArea termArea;
     private List<String> lines = new ArrayList<>();
     private int oldHotPointX = -1;
@@ -23,7 +26,7 @@ final class MainLayout extends LayoutBase
     MainLayout(App app)
     {
 	this.app = app;
-	this.term = new Terminal(app.getLuwrain(), app.termInfo);
+	this.term = new TermInterpreter(app.getLuwrain(), app.termInfo);
 	this.termArea = new NavigationArea(new DefaultControlContext(app.getLuwrain())){
 		@Override public boolean onInputEvent(InputEvent event)
 		{
@@ -166,9 +169,16 @@ app.sendChar((char)0x44);
 	    */
 	    }
 
+    //Receives new term text for processing
     void termText(String text)
     {
-	term.termText(text.replaceAll("\\[\\?2004[hl]", ""));
+	final var p = new Parser();
+	final var cmd = p.parse(text);
+	for(var i: cmd)
+	{
+	    log.trace(i.toString());
+	    term.onCommand(i);
+	}
 	termArea.setHotPoint(term.getHotPointX(), term.getHotPointY());
     }
 

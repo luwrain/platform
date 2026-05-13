@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-// Copyright 2012-2025 Michael Pozhidaev <msp@luwrain.org>
+// Copyright 2012-2026 Michael Pozhidaev <msp@luwrain.org>
 
 package org.luwrain.app.linux_term;
 
@@ -23,8 +23,8 @@ public final class App extends AppBase<Strings>
 
     final TermInfo termInfo;
     final String startingDir;
-    private UnixPtyProcess  pty = null;
-    private MainLayout layout = null;
+    private UnixPtyProcess  pty;
+    private MainLayout layout;
 
     private volatile StringBuilder termOutput = new StringBuilder();
     private volatile long latestOutputTimestamp = new Date().getTime();
@@ -49,7 +49,7 @@ public final class App extends AppBase<Strings>
 	env.put("TERM", "linux");
 	this.pty = (UnixPtyProcess)(new PtyProcessBuilder(new String[]{"/bin/bash", "-l"})
 				    .setEnvironment(env)
-				    .setDirectory((this.startingDir != null && !startingDir.isEmpty())?startingDir:getLuwrain().getProperty("luwrain.dir.userhome"))
+				    .setDirectory((this.startingDir != null && !startingDir.isEmpty())?startingDir:getLuwrain().getPath("~"))
 				    .setConsole(false)
 				    .start());
 	getLuwrain().executeBkg(new FutureTask<>(()->readOutput(), null));
@@ -62,43 +62,38 @@ public final class App extends AppBase<Strings>
     private void readOutput()
     {
 	try {
-	    try {
-		final InputStream is = pty.getInputStream();
-		final InputStreamReader r = new InputStreamReader(is, "UTF-8");
-		while(pty.isRunning())
-		{
+	    try (final InputStream is = pty.getInputStream()) {
+		try (final InputStreamReader r = new InputStreamReader(is, "UTF-8")) {
+		    while(pty.isRunning())
+		    {
 			final int c = r.read();
 			if (c < 0)
 			{
-			    log.debug("Negative character from the terminal: " + c);
+			    log.debug("Negative character from the terminal: {}", c);
 			    break;
 			}
-					    synchronized(App.this) {
-			this.termOutput.append((char)c);
-			this.latestOutputTimestamp = new Date().getTime();
+			synchronized(App.this) {
+			    this.termOutput.append((char)c);
+			    this.latestOutputTimestamp = new Date().getTime();
+			}
 		    }
-		    		}
-		log.debug("Closing the terminal");
-		//FIXME: Read complete output
-		r.close();
-		is.close();
-		try {
-		    pty.waitFor();
+		    log.debug("Closing the terminal");
+		    //FIXME: Read complete output
 		}
-		catch(InterruptedException e)
-		{
-		    Thread.currentThread().interrupt();
-		}
-		log.debug("Exit value is " + pty.exitValue());
 	    }
-	    catch(Exception e)
+	    try {
+		pty.waitFor();
+	    }
+	    catch(InterruptedException e)
 	    {
-		crash(e);
+		Thread.currentThread().interrupt();
 	    }
+	    log.debug("Exit value is {}", pty.exitValue());
 	}
-	catch(Throwable t)
+	catch(Throwable e)
 	{
-	    log.error("PPTY failure", t);
+	    log.error("PPTY failure", e);
+	    crash(e);
 	}
     }
 
@@ -132,7 +127,7 @@ public final class App extends AppBase<Strings>
 	    }
 	}
 	finally {
-	    log.debug("Finishing listening thread, running=" + pty.isRunning());
+	    log.trace("Finishing listening thread, running=" + pty.isRunning());
 	    synchronized(App.this) {
 		final String output = new String(this.termOutput);
 		this.termOutput = new StringBuilder();

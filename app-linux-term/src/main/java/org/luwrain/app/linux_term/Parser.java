@@ -1,77 +1,58 @@
 
 package org.luwrain.app.linux_term;
 
+import java.util.*;
+import java.util.stream.*;
+import org.apache.logging.log4j.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-
-public class Parser
+final class Parser
 {
+    static private final Logger log = LogManager.getLogger();
 
-    // Класс, представляющий распарсенную команду
-    public static class AnsiCommand {
-        public final String rawSequence;
-        public final char finalChar;
-        public final String privateMarker;
-        public final List<Integer> parameters;
-        public final String description;
-
-        public AnsiCommand(String rawSequence, char finalChar, String privateMarker, List<Integer> parameters, String description) {
-            this.rawSequence = rawSequence;
-            this.finalChar = finalChar;
-            this.privateMarker = privateMarker;
-            this.parameters = parameters;
-            this.description = description;
-        }
-
-        @Override
-        public String toString() {
-            return String.format("Команда: %-30s | Маркер: '%s' | Аргументы: %-10s | Финал: '%c' | Сырая: %s",
-                    description, privateMarker, parameters, finalChar, 
-                    rawSequence.replace("\033", "\\e")); // заменяем непечатный ESC для вывода
-        }
-    }
-
-    // Состояния нашего автомата
+        // Automaton states
     private enum State {
-        NORMAL,       // Обычный текст
-        ESCAPE,       // Получили \033
-        CSI_PARAM     // Внутри \033[ (Control Sequence Introducer)
+        NORMAL,       // Regular text
+        ESCAPE,       // Received \033
+        CSI_PARAM     // After \033[ (Control Sequence Introducer)
     }
 
     /**
-     * Основной метод парсинга входного потока (строки)
+     * Parses the terminal output to extract commands.
      */
-    public List<AnsiCommand> parse(String input) {
-        List<AnsiCommand> commands = new ArrayList<>();
+    public List<Output> parse(String input)
+    {
+        final List<Output> commands = new ArrayList<>();
         State state = State.NORMAL;
-
         StringBuilder rawBuffer = new StringBuilder();
         StringBuilder paramBuffer = new StringBuilder();
         String privateMarker = "";
-
-        for (int i = 0; i < input.length(); i++) {
-            char c = input.charAt(i);
-
-            switch (state) {
+        for (int i = 0; i < input.length(); i++)
+	{
+            final char c = input.charAt(i);
+            switch (state)
+	    {
                 case NORMAL:
-                    if (c == '\033') { // ESCAPE (0x1B)
+		    // ESCAPE
+                    if (c == '\033')  
+		    {
                         state = State.ESCAPE;
                         rawBuffer.setLength(0);
                         rawBuffer.append(c);
-                    }
-                    // Обычные символы просто игнорируем (или можно выводить на экран)
+                    } else
+			commands.add(new OutputText("" + c));			
+
                     break;
 
                 case ESCAPE:
                     rawBuffer.append(c);
-                    if (c == '[') {
+                    if (c == '[')
+		    {
                         state = State.CSI_PARAM;
                         paramBuffer.setLength(0);
                         privateMarker = "";
-                    } else if (c == ']') {
+                    } else
+			if (c == ']')
+			{
                         // OSC (Operating System Command) - например, смена заголовка окна.
                         // Для упрощения примера сбрасываем, но в реальном TUI здесь нужен свой State.
                         state = State.NORMAL; 
@@ -89,11 +70,15 @@ public class Parser
                         privateMarker = String.valueOf(c);
                     } 
                     // Числа и разделитель (точка с запятой)
-                    else if ((c >= '0' && c <= '9') || c == ';') {
+                    else
+			if ((c >= '0' && c <= '9') || c == ';')
+		    {
                         paramBuffer.append(c);
                     } 
                     // Финальный символ (определяет тип команды, буквы от @ до ~)
-                    else if (c >= 0x40 && c <= 0x7E) {
+                    else
+			if (c >= 0x40 && c <= 0x7E)
+			{
                         List<Integer> params = parseParameters(paramBuffer.toString());
                         String desc = resolveCommandDescription(c, privateMarker, params);
                         
@@ -107,7 +92,7 @@ public class Parser
                     break;
             }
         }
-        return commands;
+        return compacting(commands);
     }
 
     /**
@@ -115,7 +100,8 @@ public class Parser
      * Пропущенные значения неявно считаются нулями (стандартное поведение xterm).
      */
     private List<Integer> parseParameters(String paramStr) {
-        if (paramStr.isEmpty()) {
+        if (paramStr.isEmpty())
+	{
             return new ArrayList<>(); // Без аргументов
         }
         return Arrays.stream(paramStr.split(";", -1))
@@ -126,24 +112,33 @@ public class Parser
     /**
      * "Словарь" команд. Переводит машинные коды в человекочитаемый смысл.
      */
-    private String resolveCommandDescription(char finalChar, String marker, List<Integer> params) {
-        if ("?".equals(marker)) {
-            switch (finalChar) {
+    private String resolveCommandDescription(char finalChar, String marker, List<Integer> params)
+    {
+        if ("?".equals(marker))
+	{
+            switch (finalChar)
+	    {
                 case 'h': return "DEC SET (Включить режим)";
                 case 'l': return "DEC RESET (Выключить режим)";
                 default: return "DEC Private Command";
             }
         }
 
-        switch (finalChar) {
-            case 'A': return "Cursor Up (Курсор вверх)";
+        switch (finalChar)
+	{
+            case 'A':
+		return "Cursor Up (Курсор вверх)";
             case 'B': return "Cursor Down (Курсор вниз)";
             case 'C': return "Cursor Forward (Курсор вправо)";
-            case 'D': return "Cursor Back (Курсор влево)";
+            case 'D':
+		return "Cursor Back (Курсор влево)";
             case 'H': 
-            case 'f': return "Cursor Position (Перемещение курсора)";
-            case 'J': return "Erase in Display (Очистка экрана)";
-            case 'K': return "Erase in Line (Очистка строки)";
+            case 'f':
+		return "Cursor Position (Перемещение курсора)";
+            case 'J':
+		return "Erase in Display (Очистка экрана)";
+            case 'K':
+		return "Erase in Line (Очистка строки)";
             case 'm': 
                 // m - самая популярная команда (цвета, жирность)
                 return "SGR (Стиль/Цвет текста)";
@@ -153,29 +148,72 @@ public class Parser
         }
     }
 
-    // ==========================================
-    // ТЕСТОВЫЙ ЗАПУСК
-    // ==========================================
-    public static void main(String[] args) {
-        // Имитируем поток данных с терминала (смесь текста и команд)
-        // \033 = ESC
-        String terminalStream = 
-            "Обычный текст " +
-            "\033[31;1m" +       // Красный, жирный
-            "Красный текст" + 
-            "\033[0m" +          // Сброс
-            "\033[?25l" +        // Спрятать курсор
-            "\033[12;40H" +      // Курсор на 12 строку, 40 колонку
-            "\033[2J" +          // Полная очистка экрана
-            "\033[;;3m";         // Тест пропущенных аргументов (эквивалент 0;0;3)
+    static List<Output> compacting(List<Output> output)
+    {
+	final var res = new ArrayList<Output>();
+	var b = new StringBuilder();
+	for(var o: output)
+	{
+	    if (o instanceof AnsiCommand)
+	    {
+		if (b.length() > 0)
+		{
+		    res.add(new OutputText(new String(b)));
+		    b = new StringBuilder();
+		}
+		res.add(o);
+	    }
+	    if (o instanceof OutputText text)
+		b.append(text.text);
+	}
+	if (b.length() > 0)
+	    res.add(new OutputText(new String(b)));
+	return res;
+    }
 
-        Parser parser = new Parser();
-        List<AnsiCommand> parsedCommands = parser.parse(terminalStream);
+    static class Output
+    {
+    }
 
-        System.out.println("Анализ терминального потока:");
-        System.out.println("==========================================================================================");
-        for (AnsiCommand cmd : parsedCommands) {
-            System.out.println(cmd.toString());
+    static final class OutputText extends Output
+    {
+	final String text;
+
+	OutputText(String text)
+	{
+	    this.text = text;
+	}
+
+	@Override public String toString()
+	{
+	    return text;
+	}
+    }
+
+            static final class AnsiCommand extends Output
+    {
+        final String rawSequence;
+        final char finalChar;
+        final String privateMarker;
+        final List<Integer> parameters;
+        final String description;
+
+        AnsiCommand(String rawSequence, char finalChar, String privateMarker, List<Integer> parameters, String description)
+	{
+            this.rawSequence = rawSequence;
+            this.finalChar = finalChar;
+            this.privateMarker = privateMarker;
+            this.parameters = parameters;
+            this.description = description;
+        }
+
+        @Override public String toString()
+	{
+            return String.format("Команда: %-30s | Маркер: '%s' | Аргументы: %-10s | Финал: '%c' | Сырая: %s",
+                    description, privateMarker, parameters, finalChar, 
+                    rawSequence.replace("\033", "\\e")); // заменяем непечатный ESC для вывода
         }
     }
+
+    
 }
