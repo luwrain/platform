@@ -1,40 +1,39 @@
-
 package org.luwrain.app.term;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Эмуляция ANSI-терминала.
- * Строки хранятся в списке (одна строка — один StringBuilder).
- * Позиция курсора отсчитывается от 1 (строка, столбец).
- * Параметры leftUpperRow/Col управляют виртуальным началом координат в origin mode.
+ * Text content of ANSI terminal emulation.
+ * Lines are stored in a list (one line — one StringBuilder).
+ * Cursor position is 1-based (row, column).
+ * Parameters originRow/originCol control the virtual origin in origin mode.
  */
 public class TermText
 {
-    // Буфер строк терминала
+    // Terminal line buffer
     private final List<StringBuilder> buffer;
-    // Размеры экрана
+    // Screen dimensions
     private final int rows;
     private final int cols;
 
-    // Текущая позиция курсора (1-based)
+    // Current cursor position (1-based)
     private int cursorRow;
     private int cursorCol;
 
-    // Положение левого верхнего угла (начало координат при origin mode)
+    // Position of the top-left corner (origin in origin mode)
     private int originRow;
     private int originCol;
     private boolean originMode;
 
-    // Область прокрутки (topMargin, bottomMargin включительно, 1-based)
+    // Scroll region (topMargin, bottomMargin inclusive, 1-based)
     private int topMargin;
     private int bottomMargin;
 
     /**
-     * Создаёт терминал заданных размеров.
-     * @param rows количество строк
-     * @param cols количество столбцов
+     * Creates a terminal of the given size.
+     * @param rows number of rows
+     * @param cols number of columns
      */
     public TermText(int rows, int cols)
     {
@@ -54,16 +53,16 @@ public class TermText
     }
 
     // -------------------------------------------------------------------------
-    // Команды позиционирования курсора
+    // Cursor positioning commands
     // -------------------------------------------------------------------------
 
     /**
-     * Аналог CUP (Cursor Position).
-     * Устанавливает курсор в заданную позицию.
-     * Если включён originMode, координаты отсчитываются от (originRow, originCol).
-     * Параметр 0 интерпретируется как 1.
-     * @param row номер строки (1..rows)
-     * @param col номер столбца (1..cols)
+     * Analog of CUP (Cursor Position).
+     * Sets the cursor to the specified position.
+     * If originMode is on, coordinates are relative to (originRow, originCol).
+     * A parameter of 0 is treated as 1.
+     * @param row row number (1..rows)
+     * @param col column number (1..cols)
      */
     public void cup(int row, int col)
     {
@@ -80,55 +79,55 @@ public class TermText
             targetCol = col;
         }
 
-        // Ограничение границами экрана
+        // Clamp to screen boundaries
         cursorRow = clamp(targetRow, 1, rows);
-        // Столбец разрешено устанавливать и в cols+1? По стандарту можно,
-        // но для простоты ограничим шириной экрана.
+        // Column is allowed to be set to cols+1? According to the standard it is,
+        // but for simplicity we limit to screen width.
         cursorCol = clamp(targetCol, 1, cols);
     }
 
     /**
-     * Перемещение курсора в начало координат (home).
-     * При originMode — в (originRow, originCol), иначе в (1, 1).
+     * Moves cursor to home position.
+     * In originMode — to (originRow, originCol), otherwise to (1, 1).
      */
     public void cursorHome() {
         if (originMode) {
-            cup(1, 1); // пересчитает через origin
+            cup(1, 1); // recalculates via origin
         } else {
             cursorRow = 1;
             cursorCol = 1;
         }
     }
 
-    /** Перемещение вверх на n строк. */
+    /** Move up by n lines. */
     public void cursorUp(int n) {
         int maxUp = (originMode ? topMargin : 1);
         cursorRow = Math.max(cursorRow - n, maxUp);
     }
 
-    /** Перемещение вниз на n строк. */
+    /** Move down by n lines. */
     public void cursorDown(int n) {
         int maxDown = (originMode ? bottomMargin : rows);
         cursorRow = Math.min(cursorRow + n, maxDown);
     }
 
-    /** Перемещение вправо на n столбцов. */
+    /** Move right by n columns. */
     public void cursorRight(int n) {
         cursorCol = Math.min(cursorCol + n, cols);
     }
 
-    /** Перемещение влево на n столбцов. */
+    /** Move left by n columns. */
     public void cursorLeft(int n) {
         cursorCol = Math.max(cursorCol - n, 1);
     }
 
     // -------------------------------------------------------------------------
-    // Управление режимами и областью прокрутки
+    // Mode and scroll region management
     // -------------------------------------------------------------------------
 
     /**
-     * Включает/выключает origin mode.
-     * После изменения режима курсор перемещается в home позицию.
+     * Enables/disables origin mode.
+     * After changing the mode, the cursor moves to the home position.
      */
     public void setOriginMode(boolean on)
     {
@@ -136,26 +135,26 @@ public class TermText
         cursorHome();
     }
 
-    /** Установить область прокрутки (строки включительно). */
+    /** Set the scroll region (rows inclusive). */
     public void setScrollRegion(int top, int bottom) {
         if (top < 1) top = 1;
         if (bottom > rows) bottom = rows;
-        if (top > bottom) return; // некорректно
+        if (top > bottom) return; // invalid
         this.topMargin = top;
         this.bottomMargin = bottom;
-        // Курсор может стать вне области — скорректируем
+        // Cursor may be outside the region — adjust
         cursorHome();
     }
 
     // -------------------------------------------------------------------------
-    // Вывод текста
+    // Text output
     // -------------------------------------------------------------------------
 
     /**
-     * Выводит один символ в текущую позицию курсора.
-     * Действует в режиме замены (overwrite), после вывода курсор сдвигается вправо.
-     * При выходе за правую границу происходит автоматический перенос строки.
-     * Спецсимвол '\n' вызывает перевод строки.
+     * Outputs a single character at the current cursor position.
+     * Operates in overwrite mode; after output, the cursor moves right.
+     * If the right boundary is exceeded, an automatic line wrap occurs.
+     * The special character '\n' causes a line feed.
      */
     public void writeChar(char ch)
     {
@@ -165,21 +164,21 @@ public class TermText
             return;
         }
 
-        // Если курсор находится за правой границей, сначала перевод строки
+        // If cursor is beyond the right edge, first do a line feed
         if (cursorCol > cols)
 	{
             newLine();
         }
 
-        // Получаем строку буфера (индекс 0-based)
+        // Get the buffer line (0-based index)
         StringBuilder line = buffer.get(cursorRow - 1);
 
-        // Дополняем строку пробелами, если она короче нужной позиции
+        // Pad the line with spaces if it is shorter than the required position
         while (line.length() < cursorCol - 1) {
             line.append(' ');
         }
 
-        // Запись символа поверх существующего
+        // Write character overwriting existing
         if (line.length() == cursorCol - 1)
 	{
             line.append(ch);
@@ -188,11 +187,11 @@ public class TermText
             line.setCharAt(cursorCol - 1, ch);
         }
 
-        // Перемещаем курсор вправо
+        // Move cursor right
         cursorCol++;
     }
 
-    /** Вывод строки посимвольно. */
+    /** Output a string character by character. */
     public void writeString(String s)
     {
         for (int i = 0; i < s.length(); i++) {
@@ -200,7 +199,7 @@ public class TermText
         }
     }
 
-    /** Перевод строки (LF). */
+    /** Line feed (LF). */
     public void newLine()
     {
         if (cursorRow < bottomMargin)
@@ -209,17 +208,17 @@ public class TermText
             cursorCol = 1;
         } else
 	{
-            // На последней строке области прокрутки – скроллим
+            // On the last line of the scroll region — scroll
             scrollUp(1);
-            // Курсор остаётся на bottomMargin
+            // Cursor stays on bottomMargin
             cursorRow = bottomMargin;
             cursorCol = 1;
         }
     }
 
     /**
-     * Скроллинг области прокрутки вверх на указанное число строк.
-     * Новые строки внизу области очищаются.
+     * Scroll the scroll region up by the specified number of lines.
+     * New lines at the bottom of the region are cleared.
      */
     public void scrollUp(int count)
     {
@@ -229,15 +228,15 @@ public class TermText
 
         for (int k = 0; k < Math.min(count, regionSize); k++)
 	{
-            // Удаляем самую верхнюю строку области
+            // Remove the topmost line of the region
             buffer.remove(topIdx);
-            // Вставляем новую пустую строку в конец области
+            // Insert a new empty line at the end of the region
             buffer.add(bottomIdx, new StringBuilder());
         }
     }
 
     // -------------------------------------------------------------------------
-    // Вспомогательные методы
+    // Utility methods
     // -------------------------------------------------------------------------
 
     private int clamp(int value, int min, int max)
@@ -246,7 +245,7 @@ public class TermText
     }
 
     /**
-     * Возвращает видимое содержимое экрана (строки обрезаны/дополнены до cols).
+     * Returns the visible screen content (lines trimmed/padded to cols).
      */
     public String getDisplay()
     {
@@ -263,7 +262,7 @@ public class TermText
         return sb.toString();
     }
 
-    // Getters (при необходимости)
+    // Getters (if needed)
     public int getCursorRow() { return cursorRow; }
     public int getCursorCol() { return cursorCol; }
     public int getOriginRow() { return originRow; }
