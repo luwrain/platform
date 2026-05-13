@@ -110,7 +110,7 @@ final class Parser
     }
 
     /**
-     * "Словарь" команд. Переводит машинные коды в человекочитаемый смысл.
+     * Translates command codes to the human readable form.
      */
     private String resolveCommandDescription(char finalChar, String marker, List<Integer> params)
     {
@@ -118,33 +118,40 @@ final class Parser
 	{
             switch (finalChar)
 	    {
-                case 'h': return "DEC SET (Включить режим)";
-                case 'l': return "DEC RESET (Выключить режим)";
-                default: return "DEC Private Command";
+                case 'h':
+		    return "DEC SET (Включить режим)";
+                case 'l':
+		    return "DEC RESET (Выключить режим)";
+                default:
+		    return "DEC Private Command";
             }
         }
-
         switch (finalChar)
 	{
             case 'A':
-		return "Cursor Up (Курсор вверх)";
-            case 'B': return "Cursor Down (Курсор вниз)";
-            case 'C': return "Cursor Forward (Курсор вправо)";
+		return "CursorUp";
+            case 'B':
+		return "CursorDown";
+            case 'C':
+		return "CursorForward";
             case 'D':
-		return "Cursor Back (Курсор влево)";
+		return "CursorBack";
             case 'H': 
             case 'f':
-		return "Cursor Position (Перемещение курсора)";
+		return "CursorPosition";
             case 'J':
-		return "Erase in Display (Очистка экрана)";
+		return "EraseInDisplay";
             case 'K':
-		return "Erase in Line (Очистка строки)";
+		return "EraseInLine";
             case 'm': 
                 // m - самая популярная команда (цвета, жирность)
-                return "SGR (Стиль/Цвет текста)";
-            case 's': return "Save Cursor Position (Сохранить курсор)";
-            case 'u': return "Restore Cursor Pos (Восстановить курсор)";
-            default: return "Unknown/Other Control Sequence";
+                return "TextColor";
+            case 's':
+		return "SaveCursor";
+            case 'u':
+		return "RestoreCursorPos";
+            default:
+		return "Unknown/Other Control Sequence";
         }
     }
 
