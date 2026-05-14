@@ -15,13 +15,15 @@ final class TermInterpreter implements Lines, HotPoint
     static private final Logger log = LogManager.getLogger();
 
     private final Luwrain luwrain;
+    private final TermText text;
     private List<String> lines = new ArrayList<>();
     private int hotPointX = 0, hotPointY = 0;
     private StringBuilder escapeSeq = null;
 
-    TermInterpreter(Luwrain luwrain, TermInfo termInfo)
+    TermInterpreter(Luwrain luwrain, TermText text, TermInfo termInfo)
     {
 	this .luwrain = requireNonNull(luwrain, "luwrain can't be null");
+	this.text = text;
     }
 
     void onCommand(Parser.Output cmd)
@@ -30,9 +32,17 @@ final class TermInterpreter implements Lines, HotPoint
 	    lines.add("");
 	if (cmd instanceof Parser.OutputText text)
 	{
-	    onText(text.text);
+	    this.text.writeString(text.text);
 	    return;
 	}
+	if (cmd instanceof Parser.AnsiCommand ansi)
+	{
+	    onAnsiCommand(ansi);
+	}
+    }
+
+    private void onAnsiCommand(Parser.AnsiCommand cmd)
+    {
     }
 
     private void onText(String text)

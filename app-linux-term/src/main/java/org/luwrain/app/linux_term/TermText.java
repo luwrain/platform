@@ -1,7 +1,10 @@
-package org.luwrain.app.term;
+
+package org.luwrain.app.linux_term;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import org.luwrain.core.*;
 
 /**
  * Text content of ANSI terminal emulation.
@@ -9,29 +12,25 @@ import java.util.List;
  * Cursor position is 1-based (row, column).
  * Parameters originRow/originCol control the virtual origin in origin mode.
  */
-public class TermText
+public class TermText implements Lines
 {
     // Terminal line buffer
     private final List<StringBuilder> buffer;
     // Screen dimensions
-    private final int rows;
-    private final int cols;
+    private final int rows, cols;
 
     // Current cursor position (1-based)
-    private int cursorRow;
-    private int cursorCol;
+    private int cursorRow, cursorCol;
 
     // Position of the top-left corner (origin in origin mode)
-    private int originRow;
-    private int originCol;
+    private int originRow, originCol;
     private boolean originMode;
 
     // Scroll region (topMargin, bottomMargin inclusive, 1-based)
-    private int topMargin;
-    private int bottomMargin;
+    private int topMargin, bottomMargin;
 
     /**
-     * Creates a terminal of the given size.
+     * Creates a terminal text buffer of the given size.
      * @param rows number of rows
      * @param cols number of columns
      */
@@ -40,9 +39,8 @@ public class TermText
         this.rows = rows;
         this.cols = cols;
         this.buffer = new ArrayList<>(rows);
-        for (int i = 0; i < rows; i++) {
+        for (int i = 0; i < rows; i++) 
             buffer.add(new StringBuilder());
-        }
         this.cursorRow = 1;
         this.cursorCol = 1;
         this.originRow = 1;
@@ -64,7 +62,7 @@ public class TermText
      * @param row row number (1..rows)
      * @param col column number (1..cols)
      */
-    public void cup(int row, int col)
+    void setCursorPos(int row, int col)
     {
         if (row < 1) row = 1;
         if (col < 1) col = 1;
@@ -92,7 +90,7 @@ public class TermText
      */
     public void cursorHome() {
         if (originMode) {
-            cup(1, 1); // recalculates via origin
+            setCursorPos(1, 1); // recalculates via origin
         } else {
             cursorRow = 1;
             cursorCol = 1;
@@ -121,9 +119,7 @@ public class TermText
         cursorCol = Math.max(cursorCol - n, 1);
     }
 
-    // -------------------------------------------------------------------------
     // Mode and scroll region management
-    // -------------------------------------------------------------------------
 
     /**
      * Enables/disables origin mode.
@@ -192,7 +188,7 @@ public class TermText
     }
 
     /** Output a string character by character. */
-    public void writeString(String s)
+    void writeString(String s)
     {
         for (int i = 0; i < s.length(); i++) {
             writeChar(s.charAt(i));
@@ -268,4 +264,16 @@ public class TermText
     public int getOriginRow() { return originRow; }
     public int getOriginCol() { return originCol; }
     public boolean isOriginMode() { return originMode; }
+
+    @Override public int getLineCount()
+    {
+	return Math.max(buffer.size(), 1);
+    }
+
+    @Override public String getLine(int index)
+    {
+	if (index < 0 || index >= buffer.size())
+	    return "";
+			return new String(buffer.get(index));
+    }
 }

@@ -17,6 +17,7 @@ final class MainLayout extends LayoutBase
     static private final Logger log = LogManager.getLogger();
     
     private final App app;
+    private final TermText termText = new TermText(25, 80);
     private final TermInterpreter term ;
     private final NavigationArea termArea;
     private List<String> lines = new ArrayList<>();
@@ -26,7 +27,7 @@ final class MainLayout extends LayoutBase
     MainLayout(App app)
     {
 	this.app = app;
-	this.term = new TermInterpreter(app.getLuwrain(), app.termInfo);
+	this.term = new TermInterpreter(app.getLuwrain(), termText, app.termInfo);
 	this.termArea = new NavigationArea(new DefaultControlContext(app.getLuwrain())){
 		@Override public boolean onInputEvent(InputEvent event)
 		{
@@ -122,12 +123,11 @@ app.sendChar((char)0x44);
 		}
 				@Override public int getLineCount()
 		{
-		    final int count = term.getLineCount();
-		    return count > 0?count:1;
+		    return termText.getLineCount();
 		    		}
 		@Override public String getLine(int index)
 		{
-		    return term.getLine(index);
+		    return termText.getLine(index);
 		}
 		@Override public void announceLine(int index, String line)
 		{
