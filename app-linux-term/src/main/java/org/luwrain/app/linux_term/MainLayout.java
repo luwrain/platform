@@ -179,7 +179,8 @@ app.sendChar((char)0x44);
 	    log.trace(i.toString());
 	    term.onCommand(i);
 	}
-	termArea.setHotPoint(term.getHotPointX(), term.getHotPointY());
+	termArea.setHotPoint(termText.getHotPointX(), termText.getHotPointY());
+	term.speak();	
     }
 
     AreaLayout getLayout()

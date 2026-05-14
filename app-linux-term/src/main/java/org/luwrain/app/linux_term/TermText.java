@@ -12,7 +12,7 @@ import org.luwrain.core.*;
  * Cursor position is 1-based (row, column).
  * Parameters originRow/originCol control the virtual origin in origin mode.
  */
-public class TermText implements Lines
+public class TermText implements Lines, HotPoint
 {
     // Terminal line buffer
     private final List<StringBuilder> buffer;
@@ -50,10 +50,7 @@ public class TermText implements Lines
         this.bottomMargin = rows;
     }
 
-    // -------------------------------------------------------------------------
     // Cursor positioning commands
-    // -------------------------------------------------------------------------
-
     /**
      * Analog of CUP (Cursor Position).
      * Sets the cursor to the specified position.
@@ -64,15 +61,17 @@ public class TermText implements Lines
      */
     void setCursorPos(int row, int col)
     {
-        if (row < 1) row = 1;
-        if (col < 1) col = 1;
-
-        int targetRow, targetCol;
+        if (row < 1)
+	    row = 1;
+        if (col < 1)
+	    col = 1;
+        final int targetRow, targetCol;
         if (originMode)
 	{
             targetRow = originRow + row - 1;
             targetCol = originCol + col - 1;
-        } else {
+        } else
+	{
             targetRow = row;
             targetCol = col;
         }
@@ -120,7 +119,6 @@ public class TermText implements Lines
     }
 
     // Mode and scroll region management
-
     /**
      * Enables/disables origin mode.
      * After changing the mode, the cursor moves to the home position.
@@ -142,10 +140,7 @@ public class TermText implements Lines
         cursorHome();
     }
 
-    // -------------------------------------------------------------------------
     // Text output
-    // -------------------------------------------------------------------------
-
     /**
      * Outputs a single character at the current cursor position.
      * Operates in overwrite mode; after output, the cursor moves right.
@@ -159,30 +154,25 @@ public class TermText implements Lines
             newLine();
             return;
         }
-
         // If cursor is beyond the right edge, first do a line feed
         if (cursorCol > cols)
-	{
             newLine();
-        }
-
         // Get the buffer line (0-based index)
-        StringBuilder line = buffer.get(cursorRow - 1);
-
+        final StringBuilder line = buffer.get(cursorRow - 1);
         // Pad the line with spaces if it is shorter than the required position
-        while (line.length() < cursorCol - 1) {
+        while (line.length() < cursorCol - 1) 
             line.append(' ');
-        }
-
+	// Handling backspace
+	if (ch == '\b')
+	{
+	                line.setCharAt(cursorCol - 2, ' ');
+			cursorCol--;
+			return;
+	}
         // Write character overwriting existing
         if (line.length() == cursorCol - 1)
-	{
-            line.append(ch);
-        } else
-	{
+            line.append(ch); else
             line.setCharAt(cursorCol - 1, ch);
-        }
-
         // Move cursor right
         cursorCol++;
     }
@@ -190,9 +180,8 @@ public class TermText implements Lines
     /** Output a string character by character. */
     void writeString(String s)
     {
-        for (int i = 0; i < s.length(); i++) {
+        for (int i = 0; i < s.length(); i++) 
             writeChar(s.charAt(i));
-        }
     }
 
     /** Line feed (LF). */
@@ -231,10 +220,6 @@ public class TermText implements Lines
         }
     }
 
-    // -------------------------------------------------------------------------
-    // Utility methods
-    // -------------------------------------------------------------------------
-
     private int clamp(int value, int min, int max)
     {
         return Math.max(min, Math.min(max, value));
@@ -258,9 +243,17 @@ public class TermText implements Lines
         return sb.toString();
     }
 
-    // Getters (if needed)
-    public int getCursorRow() { return cursorRow; }
-    public int getCursorCol() { return cursorCol; }
+        @Override public int getHotPointX()
+    {
+	return cursorCol - 1;
+    }
+
+    @Override public int getHotPointY()
+    {
+	return cursorRow - 1;
+    }
+    
+
     public int getOriginRow() { return originRow; }
     public int getOriginCol() { return originCol; }
     public boolean isOriginMode() { return originMode; }

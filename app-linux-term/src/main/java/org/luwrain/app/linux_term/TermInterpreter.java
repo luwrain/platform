@@ -10,7 +10,7 @@ import org.luwrain.core.*;
 
 import static java.util.Objects.*;
 
-final class TermInterpreter implements Lines, HotPoint
+final class TermInterpreter
 {
     static private final Logger log = LogManager.getLogger();
 
@@ -19,6 +19,7 @@ final class TermInterpreter implements Lines, HotPoint
     private List<String> lines = new ArrayList<>();
     private int hotPointX = 0, hotPointY = 0;
     private StringBuilder escapeSeq = null;
+    private StringBuilder speaking = new StringBuilder();
 
     TermInterpreter(Luwrain luwrain, TermText text, TermInfo termInfo)
     {
@@ -33,6 +34,12 @@ final class TermInterpreter implements Lines, HotPoint
 	if (cmd instanceof Parser.OutputText text)
 	{
 	    this.text.writeString(text.text);
+	    if (!text.text.trim().isEmpty())
+	    {
+	    if (speaking.length()> 0)
+		speaking.append(' ');
+	    speaking.append(text.text.trim());
+	    }
 	    return;
 	}
 	if (cmd instanceof Parser.AnsiCommand ansi)
@@ -45,12 +52,15 @@ final class TermInterpreter implements Lines, HotPoint
     {
     }
 
+    /*
     private void onText(String text)
     {
 	for(int i = 0;i < text.length();i++)
 	    onChar(text.charAt(i));
     }
+    */
 
+    /*
     void onChar(char ch)
     {    
 		    switch(ch)
@@ -59,7 +69,7 @@ final class TermInterpreter implements Lines, HotPoint
 			//Doing nothing, sound will be played through speaking
 return;
 		    case '\b':
-						onBackspace();
+									onBackspace();
 return;
 		    case '\r':
 return;
@@ -73,6 +83,7 @@ return;
 			return;
 		    }
     }
+    */
 
     private void appendText(String text)
     {
@@ -80,8 +91,12 @@ return;
 				hotPointX += text.length();
     }
 
-    private void speak(String text)
+    void speak()
     {
+	final var text = new String(speaking);
+	speaking = new StringBuilder();
+	if (text.trim().isEmpty())
+	    return;
 	final StringBuilder str = new StringBuilder();
 	for(int i = 0;i < text.length();i++)
 	{
@@ -106,6 +121,7 @@ return;
 	    luwrain.speak(luwrain.getSpeakableText(toSpeak, Luwrain.SpeakableTextType.PROGRAMMING));
     }
 
+    /*
     @Override public int getHotPointX()
     {
 	return this.hotPointX;
@@ -144,4 +160,5 @@ void onBackspace()
 	hotPointX--;
 	//	luwrain.setEventResponse(DefaultEventResponse.letter(ch));
     }
+    */
 }
