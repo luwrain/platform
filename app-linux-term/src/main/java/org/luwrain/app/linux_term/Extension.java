@@ -21,11 +21,11 @@ public final class Extension extends EmptyExtension
 		@Override public Application[] prepareApp(String[] args)
 		{
 		    if (args.length == 1 && !args[0].isEmpty())
-			return new Application[]{new App(new TermInfo(), args[0])};
+			return new Application[]{new App(args[0])};
 		    final String dir = luwrain.getActiveAreaAttr(Luwrain.AreaAttr.DIRECTORY);
 		    if (dir != null && !dir.isEmpty())
-			return new Application[]{new App(new TermInfo(), dir)};
-		    return new Application[]{new App(new TermInfo())};
+			return new Application[]{new App(dir)};
+		    return new Application[]{new App()};
 		}
 	    }
 	};

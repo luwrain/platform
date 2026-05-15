@@ -27,55 +27,12 @@ final class MainLayout extends LayoutBase
     MainLayout(App app)
     {
 	this.app = app;
-	this.term = new TermInterpreter(app.getLuwrain(), termText, app.termInfo);
+	this.term = new TermInterpreter(app.getLuwrain(), termText);
 	this.termArea = new NavigationArea(new DefaultControlContext(app.getLuwrain())){
 		@Override public boolean onInputEvent(InputEvent event)
 		{
-		    if (event.isSpecial() && !event.isModified())
-			switch(event.getSpecial())
-			{
-			case ENTER:
-			    app.sendChar('\n');
-			    return true;
-			    			case TAB:
-app.sendChar('\t');
-			    return true;
-			    			case BACKSPACE:
-			    app.sendChar('\b');
-						    return true;
-			case ESCAPE:
-			    app.closeApp();
-			    return true;
-			    			    		    			case 			    ALTERNATIVE_ARROW_UP:
-app.sendChar((char)0x1b);
-app.sendChar((char)0x5b);
-app.sendChar((char)0x41);
-			    return true;
-
-			    			    			    		    			case 			    ALTERNATIVE_ARROW_LEFT:
-app.sendChar((char)0x1b);
-app.sendChar((char)0x5b);
-app.sendChar((char)0x44);
-
-			    return true;
-
-
-			}
-		    if (!event.isSpecial() && event.withControlOnly())
-			switch(event.getChar())
-			{
-			case 'd':
-			    app.sendChar('\u0004');
-			    return true;
-
-
-			    
-			}
-		    if (!event.isSpecial() && (!event.isModified() || event.withShiftOnly()))
-		    {
-			app.sendChar(event.getChar());
+		    if (MainLayout.this.onInputEvent(event))
 			return true;
-		    }
 		    		    if (app.onInputEvent(this, event))
 			return true;
 		    return super.onInputEvent(event);
@@ -83,18 +40,6 @@ app.sendChar((char)0x44);
 
 			    
 		    /*
-			case 			    ALTERNATIVE_ARROW_LEFT:
-			    term.writeCode(Terminal.Codes.ARROW_LEFT);
-			    return true;
-			case 			    ALTERNATIVE_ARROW_RIGHT:
-			    term.writeCode(Terminal.Codes.ARROW_RIGHT);
-			    return true;
-			case 			    ALTERNATIVE_ARROW_DOWN:
-			    term.writeCode(Terminal.Codes.ARROW_DOWN);
-			    return true;
-			}
-		    if (!event.isSpecial())
-		    {
 			if (event.getChar() == ' ')
 			{
 			    final String lastWord = TextUtils.getLastWord(getLine(getHotPointY()), getHotPointX());
@@ -104,8 +49,6 @@ app.sendChar((char)0x44);
 			term.write(event.getChar());
 			return true;
 		    }
-		    //FIXME:
-		    return super.onInputEvent(event);
 		    */
 		}
 		@Override public boolean onSystemEvent(SystemEvent event)
@@ -138,6 +81,53 @@ app.sendChar((char)0x44);
 		    return app.getStrings().areaName();
 		}
 	    };
+    }
+
+    private boolean onInputEvent(InputEvent event)
+    {
+			    if (event.isSpecial() && !event.isModified())
+			switch(event.getSpecial())
+			{
+			case ENTER:
+			    app.sendChar('\n');
+			    return true;
+			    			case TAB:
+app.sendChar('\t');
+			    return true;
+			    			case BACKSPACE:
+			    app.sendChar('\b');
+						    return true;
+			case ESCAPE:
+			    app.closeApp();
+			    return true;
+			    			    		    			case 			    ALTERNATIVE_ARROW_UP:
+											    														    app.sendChar(new byte[]{ '\033', '[', 'A' });
+																									    			    return true;
+																												    			    			    		    			case 			    ALTERNATIVE_ARROW_DOWN:
+											    														    app.sendChar(new byte[]{ '\033', '[', 'B' });
+																									    			    return true;
+
+			    			    			    		    			case 			    ALTERNATIVE_ARROW_LEFT:
+														    app.sendChar(new byte[]{ '\033', '[', 'D' });
+			    return true;
+			    			    			    			    		    			case 			    ALTERNATIVE_ARROW_RIGHT:
+														    app.sendChar(new byte[]{ '\033', '[', 'C' });
+			    return true;
+
+			}
+		    if (!event.isSpecial() && event.withControlOnly())
+			switch(event.getChar())
+			{
+			case 'd':
+			    app.sendChar('\u0004');
+			    return true;
+			}
+		    if (!event.isSpecial() && (!event.isModified() || event.withShiftOnly()))
+		    {
+			app.sendChar(event.getChar());
+			return true;
+		    }
+		    return false;
     }
 
     void update(char ch)
@@ -176,6 +166,7 @@ app.sendChar((char)0x44);
 	final var cmd = p.parse(text);
 	for(var i: cmd)
 	{
+	    if (i instanceof Parser.AnsiCommand)
 	    log.trace(i.toString());
 	    term.onCommand(i);
 	}

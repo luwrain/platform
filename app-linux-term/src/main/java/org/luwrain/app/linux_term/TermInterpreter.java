@@ -16,12 +16,9 @@ final class TermInterpreter
 
     private final Luwrain luwrain;
     private final TermText text;
-    private List<String> lines = new ArrayList<>();
-    private int hotPointX = 0, hotPointY = 0;
-    private StringBuilder escapeSeq = null;
     private StringBuilder speaking = new StringBuilder();
 
-    TermInterpreter(Luwrain luwrain, TermText text, TermInfo termInfo)
+    TermInterpreter(Luwrain luwrain, TermText text)
     {
 	this .luwrain = requireNonNull(luwrain, "luwrain can't be null");
 	this.text = text;
@@ -29,8 +26,6 @@ final class TermInterpreter
 
     void onCommand(Parser.Output cmd)
     {
-	if (lines.isEmpty())
-	    lines.add("");
 	if (cmd instanceof Parser.OutputText text)
 	{
 	    this.text.writeString(text.text);
@@ -50,45 +45,16 @@ final class TermInterpreter
 
     private void onAnsiCommand(Parser.AnsiCommand cmd)
     {
-    }
-
-    /*
-    private void onText(String text)
-    {
-	for(int i = 0;i < text.length();i++)
-	    onChar(text.charAt(i));
-    }
-    */
-
-    /*
-    void onChar(char ch)
-    {    
-		    switch(ch)
-		    {
-		    case (char)7:
-			//Doing nothing, sound will be played through speaking
-return;
-		    case '\b':
-									onBackspace();
-return;
-		    case '\r':
-return;
-		    case '\n':
-			lines.add("");
-			hotPointY++;
-			hotPointX = 0;
-return;
-		    default:
-			appendText(String.valueOf(ch));
-			return;
-		    }
-    }
-    */
-
-    private void appendText(String text)
-    {
-				lines.set(lines.size() - 1, lines.get(lines.size() - 1) + text);
-				hotPointX += text.length();
+	switch(cmd.description)
+	{
+	case "EraseInLine": {
+	    final int n = !cmd.params.isEmpty() ? cmd.params.get(0).intValue() : 1;
+	    log.trace("Erasing {} chars", n);
+	    break;
+	}
+	default:
+	    log.warn("Unhandled {}", cmd.toString());
+	}
     }
 
     void speak()
@@ -120,45 +86,4 @@ return;
 	    luwrain.speakLetter(toSpeak.charAt(0)); else
 	    luwrain.speak(luwrain.getSpeakableText(toSpeak, Luwrain.SpeakableTextType.PROGRAMMING));
     }
-
-    /*
-    @Override public int getHotPointX()
-    {
-	return this.hotPointX;
     }
-
-    @Override public int getHotPointY()
-    {
-	return this.hotPointY;
-    }
-
-        @Override public int getLineCount()
-    {
-	return lines.size();
-    }
-
-    @Override public String getLine(int index)
-    {
-	if (index >= lines.size())
-	    return "";
-	return lines.get(index);
-    }
-
-void onBackspace()
-    {
-	if (hotPointX == 0)
-	    return;
-	if (hotPointY >= lines.size())
-	{
-	    log.warn("Hot point Y is outside of text area");
-	    return;
-	}
-	final String line = lines.get(hotPointY);
-	hotPointX = Math.min(hotPointX, line.length());
-	final char ch = line.charAt(hotPointX - 1);
-	lines.set(hotPointY, line.substring(0, hotPointX -1) + line.substring(hotPointX));
-	hotPointX--;
-	//	luwrain.setEventResponse(DefaultEventResponse.letter(ch));
-    }
-    */
-}

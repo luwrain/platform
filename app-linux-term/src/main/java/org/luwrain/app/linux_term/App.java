@@ -21,7 +21,6 @@ public final class App extends AppBase<Strings>
     static private final Logger log = LogManager.getLogger();
     static private final long LISTENING_DELAY = 10;
 
-    final TermInfo termInfo;
     final String startingDir;
     private UnixPtyProcess  pty;
     private MainLayout layout;
@@ -29,17 +28,15 @@ public final class App extends AppBase<Strings>
     private volatile StringBuilder termOutput = new StringBuilder();
     private volatile long latestOutputTimestamp = new Date().getTime();
 
-    public App(TermInfo termInfo)
+    public App()
     {
 	super(Strings.class, "luwrain.linux.term");
-	this.termInfo = requireNonNull(termInfo, "termInfo can't be null");
 	this.startingDir = null;
     }
 
-    public App(TermInfo termInfo, String startingDir)
+    public App(String startingDir)
     {
 	super(Strings.class, "luwrain.linux.term");
-	this.termInfo = requireNonNull(termInfo, "termInfo can't be null");
 	this.startingDir = startingDir;
     }
 
@@ -67,9 +64,10 @@ public final class App extends AppBase<Strings>
 		    while(pty.isRunning())
 		    {
 			final int c = r.read();
+			log.trace("Input {} ({})", (char)c, c);
 			if (c < 0)
 			{
-			    log.debug("Negative character from the terminal: {}", c);
+			    log.trace("Negative character from the terminal: {}", c);
 			    break;
 			}
 			synchronized(App.this) {
@@ -140,12 +138,13 @@ public final class App extends AppBase<Strings>
 	}
     }
 
-void sendChar(char ch)
+void sendChar(int ch)
     {
 	try {
-	    	if (ch < 32)
+	    	if (ch < 128)
 	{
-	    pty.getOutputStream().write((byte)ch);
+	    pty.getOutputStream().write(ch);
+	    pty.getOutputStream().flush();
 	    return;
 	}
 	    final OutputStreamWriter w = new OutputStreamWriter(pty.getOutputStream(), "UTF-8");
@@ -157,6 +156,19 @@ void sendChar(char ch)
 	    getLuwrain().crash(e);
 	}
 	    }
+
+    void sendChar(byte[] ch)
+    {
+	try {
+	    pty.getOutputStream().write(ch);
+	    pty.getOutputStream().flush();
+	}
+	catch(IOException e)
+	{
+	    getLuwrain().crash(e);
+	}
+	    }
+
 
     @Override public void closeApp()
     {

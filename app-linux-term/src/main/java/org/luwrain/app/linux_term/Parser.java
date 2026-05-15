@@ -5,6 +5,8 @@ import java.util.*;
 import java.util.stream.*;
 import org.apache.logging.log4j.*;
 
+import static java.util.Objects.*;
+
 final class Parser
 {
     static private final Logger log = LogManager.getLogger();
@@ -29,6 +31,7 @@ final class Parser
         for (int i = 0; i < input.length(); i++)
 	{
             final char c = input.charAt(i);
+	    //log.trace("Parsing '{}'", c);
             switch (state)
 	    {
                 case NORMAL:
@@ -39,8 +42,7 @@ final class Parser
                         rawBuffer.setLength(0);
                         rawBuffer.append(c);
                     } else
-			commands.add(new OutputText("" + c));			
-
+			commands.add(new OutputText(String.valueOf(c)));
                     break;
 
                 case ESCAPE:
@@ -56,7 +58,8 @@ final class Parser
                         // OSC (Operating System Command) - например, смена заголовка окна.
                         // Для упрощения примера сбрасываем, но в реальном TUI здесь нужен свой State.
                         state = State.NORMAL; 
-                    } else {
+                    } else
+			{
                         // Одиночные ESC-команды (например ESC M - Reverse Index)
                         state = State.NORMAL;
                     }
@@ -64,24 +67,17 @@ final class Parser
 
                 case CSI_PARAM:
                     rawBuffer.append(c);
-                    
                     // Приватные маркеры (например, ? для режимов DEC)
-                    if (c >= 0x3C && c <= 0x3F) { 
-                        privateMarker = String.valueOf(c);
-                    } 
+                    if (c >= 0x3C && c <= 0x3F)
+                        privateMarker = String.valueOf(c); else
                     // Числа и разделитель (точка с запятой)
-                    else
 			if ((c >= '0' && c <= '9') || c == ';')
-		    {
-                        paramBuffer.append(c);
-                    } 
+                        paramBuffer.append(c); else
                     // Финальный символ (определяет тип команды, буквы от @ до ~)
-                    else
 			if (c >= 0x40 && c <= 0x7E)
 			{
                         List<Integer> params = parseParameters(paramBuffer.toString());
                         String desc = resolveCommandDescription(c, privateMarker, params);
-                        
                         commands.add(new AnsiCommand(
                                 rawBuffer.toString(), c, privateMarker, params, desc
                         ));
@@ -202,22 +198,22 @@ final class Parser
         final String rawSequence;
         final char finalChar;
         final String privateMarker;
-        final List<Integer> parameters;
+        final List<Integer> params;
         final String description;
 
-        AnsiCommand(String rawSequence, char finalChar, String privateMarker, List<Integer> parameters, String description)
+        AnsiCommand(String rawSequence, char finalChar, String privateMarker, List<Integer> params, String description)
 	{
             this.rawSequence = rawSequence;
             this.finalChar = finalChar;
             this.privateMarker = privateMarker;
-            this.parameters = parameters;
+            this.params = requireNonNullElse(params, new ArrayList<>());
             this.description = description;
         }
 
         @Override public String toString()
 	{
-            return String.format("Команда: %-30s | Маркер: '%s' | Аргументы: %-10s | Финал: '%c' | Сырая: %s",
-                    description, privateMarker, parameters, finalChar, 
+            return String.format("ANSI: %-30s, marker: '%s', params: %-10s, final: '%c', raw: %s",
+                    description, privateMarker, params, finalChar, 
                     rawSequence.replace("\033", "\\e")); // заменяем непечатный ESC для вывода
         }
     }
