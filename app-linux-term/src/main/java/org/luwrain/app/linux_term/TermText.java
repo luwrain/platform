@@ -9,7 +9,7 @@ import org.luwrain.core.*;
 /**
  * Text content of ANSI terminal emulation.
  * Lines are stored in a list (one line — one StringBuilder).
- * Cursor position is 1-based (row, column).
+ * Cursor position is 0-based (row, column).
  * Parameters originRow/originCol control the virtual origin in origin mode.
  */
 public class TermText implements Lines, HotPoint
@@ -19,14 +19,14 @@ public class TermText implements Lines, HotPoint
     // Screen dimensions
     private final int rows, cols;
 
-    // Current cursor position (1-based)
+    // Current cursor position (0-based)
     private int cursorRow, cursorCol;
 
     // Position of the top-left corner (origin in origin mode)
     private int originRow, originCol;
     private boolean originMode;
 
-    // Scroll region (topMargin, bottomMargin inclusive, 1-based)
+    // Scroll region (topMargin, bottomMargin inclusive, 0-based)
     private int topMargin, bottomMargin;
 
     /**
@@ -55,67 +55,67 @@ public class TermText implements Lines, HotPoint
      * Analog of CUP (Cursor Position).
      * Sets the cursor to the specified position.
      * If originMode is on, coordinates are relative to (originRow, originCol).
-     * A parameter of 0 is treated as 1.
-     * @param row row number (1..rows)
-     * @param col column number (1..cols)
+     * @param row row number (0..rows-1)
+     * @param col column number (0..cols-1)
      */
     void setCursorPos(int row, int col)
     {
-        if (row < 1)
-	    row = 1;
-        if (col < 1)
-	    col = 1;
+        if (row < 0)
+	    row = 0;
+        if (col < 0)
+	    col = 0;
         final int targetRow, targetCol;
         if (originMode)
 	{
-            targetRow = originRow + row - 1;
-            targetCol = originCol + col - 1;
+            targetRow = originRow + row;
+            targetCol = originCol + col;
         } else
 	{
             targetRow = row;
             targetCol = col;
         }
-
         // Clamp to screen boundaries
         cursorRow = clamp(targetRow, 1, rows);
         // Column is allowed to be set to cols+1? According to the standard it is,
         // but for simplicity we limit to screen width.
-        cursorCol = clamp(targetCol, 1, cols);
+        cursorCol = clamp(targetCol, 0, cols - 1);
     }
 
     /**
      * Moves cursor to home position.
-     * In originMode — to (originRow, originCol), otherwise to (1, 1).
+     * In originMode — to (originRow, originCol), otherwise to (0, 0).
      */
-    public void cursorHome() {
-        if (originMode) {
-            setCursorPos(1, 1); // recalculates via origin
-        } else {
-            cursorRow = 1;
-            cursorCol = 1;
+    public void cursorHome()
+    {
+        if (originMode) 
+            setCursorPos(0, 0); else // recalculates via origin
+{
+            cursorRow = 0;
+            cursorCol = 0;
         }
     }
 
     /** Move up by n lines. */
     public void cursorUp(int n) {
-        int maxUp = (originMode ? topMargin : 1);
+        int maxUp = (originMode ? topMargin : 0);
         cursorRow = Math.max(cursorRow - n, maxUp);
     }
 
     /** Move down by n lines. */
     public void cursorDown(int n) {
         int maxDown = (originMode ? bottomMargin : rows);
-        cursorRow = Math.min(cursorRow + n, maxDown);
+        cursorRow = Math.min(cursorRow + n, maxDown - 1);
     }
 
     /** Move right by n columns. */
     public void cursorRight(int n) {
-        cursorCol = Math.min(cursorCol + n, cols);
+        cursorCol = Math.min(cursorCol + n, cols - 1);
     }
 
     /** Move left by n columns. */
-    public void cursorLeft(int n) {
-        cursorCol = Math.max(cursorCol - n, 1);
+    public void cursorLeft(int n)
+    {
+        cursorCol = Math.max(cursorCol - n, 0);
     }
 
     // Mode and scroll region management
@@ -130,10 +130,14 @@ public class TermText implements Lines, HotPoint
     }
 
     /** Set the scroll region (rows inclusive). */
-    public void setScrollRegion(int top, int bottom) {
-        if (top < 1) top = 1;
-        if (bottom > rows) bottom = rows;
-        if (top > bottom) return; // invalid
+    public void setScrollRegion(int top, int bottom)
+    {
+        if (top < 0)
+	    top = 0;
+        if (bottom >= rows)
+	    bottom = rows - 1;
+        if (top > bottom)
+	    return; // invalid
         this.topMargin = top;
         this.bottomMargin = bottom;
         // Cursor may be outside the region — adjust
@@ -155,34 +159,42 @@ public class TermText implements Lines, HotPoint
             return;
         }
         // If cursor is beyond the right edge, first do a line feed
-        if (cursorCol > cols)
+        if (cursorCol >= cols)
             newLine();
         // Get the buffer line (0-based index)
-        final StringBuilder line = buffer.get(cursorRow - 1);
+        final StringBuilder line = buffer.get(cursorRow);
         // Pad the line with spaces if it is shorter than the required position
-        while (line.length() < cursorCol - 1) 
+        while (line.length() < cursorCol) 
             line.append(' ');
-	// Handling backspace
-	if (ch == '\b')
-	{
-	                line.setCharAt(cursorCol - 2, ' ');
-			cursorCol--;
-			return;
-	}
         // Write character overwriting existing
-        if (line.length() == cursorCol - 1)
+        if (line.length() == cursorCol)
             line.append(ch); else
-            line.setCharAt(cursorCol - 1, ch);
+            line.setCharAt(cursorCol, ch);
         // Move cursor right
         cursorCol++;
     }
 
-    /** Output a string character by character. */
-    void writeString(String s)
+    /**
+     * Fills the text with spaces from the current position.
+     * The cursor doesn't change its position.
+     * @param num The number of characters to fill
+     */
+    void fillSpaces(int num)
     {
-        for (int i = 0; i < s.length(); i++) 
-            writeChar(s.charAt(i));
+        // If cursor is beyond the right edge, first do a line feed
+        if (cursorCol >= cols)
+            newLine();
+        // Get the buffer line (0-based index)
+        final StringBuilder line = buffer.get(cursorRow);
+        // Pad the line with spaces if it is shorter than the required position
+        while (line.length() < cursorCol) 
+            line.append(' ');
+	for(int i = 0;i < num;i++)
+        if (line.length() == cursorCol + i)
+            line.append(' '); else
+            line.setCharAt(cursorCol + i, ' ');
     }
+
 
     /** Line feed (LF). */
     public void newLine()
@@ -190,14 +202,14 @@ public class TermText implements Lines, HotPoint
         if (cursorRow < bottomMargin)
 	{
             cursorRow++;
-            cursorCol = 1;
+            cursorCol = 0;
         } else
 	{
             // On the last line of the scroll region — scroll
             scrollUp(1);
             // Cursor stays on bottomMargin
             cursorRow = bottomMargin;
-            cursorCol = 1;
+            cursorCol = 0;
         }
     }
 
@@ -225,39 +237,16 @@ public class TermText implements Lines, HotPoint
         return Math.max(min, Math.min(max, value));
     }
 
-    /**
-     * Returns the visible screen content (lines trimmed/padded to cols).
-     */
-    public String getDisplay()
-    {
-        StringBuilder sb = new StringBuilder();
-        for (int r = 0; r < rows; r++) {
-            StringBuilder line = buffer.get(r);
-            int len = line.length();
-            sb.append(line.substring(0, Math.min(len, cols)));
-            for (int c = len; c < cols; c++) {
-                sb.append(' ');
-            }
-            if (r < rows - 1) sb.append('\n');
-        }
-        return sb.toString();
-    }
-
         @Override public int getHotPointX()
     {
-	return cursorCol - 1;
+	return cursorCol;
     }
 
     @Override public int getHotPointY()
     {
-	return cursorRow - 1;
+	return cursorRow;
     }
     
-
-    public int getOriginRow() { return originRow; }
-    public int getOriginCol() { return originCol; }
-    public boolean isOriginMode() { return originMode; }
-
     @Override public int getLineCount()
     {
 	return Math.max(buffer.size(), 1);

@@ -17,6 +17,7 @@ final class TermInterpreter
     private final Luwrain luwrain;
     private final TermText text;
     private StringBuilder speaking = new StringBuilder();
+    private boolean bell = false;
 
     TermInterpreter(Luwrain luwrain, TermText text)
     {
@@ -26,14 +27,22 @@ final class TermInterpreter
 
     void onCommand(Parser.Output cmd)
     {
-	if (cmd instanceof Parser.OutputText text)
+	if (cmd instanceof Parser.OutputText t)
 	{
-	    this.text.writeString(text.text);
-	    if (!text.text.trim().isEmpty())
+	    for(int i = 0;i < t.text.length();i++)
+	    {
+		final var ch = t.text.charAt(i);
+		if (ch == 7)
+		    bell = true; else
+		if (ch == '\b')
+		    text.setCursorPos(text.getHotPointY(), text.getHotPointX() - 1); else
+	    this.text.writeChar(ch);
+	    }
+	    if (!t.text.trim().isEmpty())
 	    {
 	    if (speaking.length()> 0)
 		speaking.append(' ');
-	    speaking.append(text.text.trim());
+	    speaking.append(t.text.trim());
 	    }
 	    return;
 	}
@@ -50,6 +59,7 @@ final class TermInterpreter
 	case "EraseInLine": {
 	    final int n = !cmd.params.isEmpty() ? cmd.params.get(0).intValue() : 1;
 	    log.trace("Erasing {} chars", n);
+	    text.fillSpaces(n);
 	    break;
 	}
 	default:
@@ -59,24 +69,20 @@ final class TermInterpreter
 
     void speak()
     {
+	final boolean playBell = bell;
 	final var text = new String(speaking);
 	speaking = new StringBuilder();
-	if (text.trim().isEmpty())
+	bell = false;
+	if (text.trim().isEmpty() && !playBell)
 	    return;
+	if (playBell)
+	    		luwrain.playSound(Sounds.TERM_BELL);
 	final StringBuilder str = new StringBuilder();
 	for(int i = 0;i < text.length();i++)
 	{
 	    final char ch = text.charAt(i);
-	    if (ch == 7)
-	    {
-		luwrain.playSound(Sounds.TERM_BELL);
-		continue;
-	    }
 	    if (ch < 32)
-	    {
-		str.append(" ");
-		continue;
-	    }
+		str.append(" "); else
 	    str.append(ch);
 	}
 	final String toSpeak = new String(str).trim();
