@@ -35,7 +35,10 @@ final class TermInterpreter
 		if (ch == 7)
 		    bell = true; else
 		if (ch == '\b')
-		    text.setCursorPos(text.getHotPointY(), text.getHotPointX() - 1); else
+		{
+		    text.setCursorPos(text.getHotPointY(), text.getHotPointX() - 1);
+		    log.trace("Cursor moved backward to {}, {}", text.getHotPointX(), text.getHotPointY());
+		}else
 	    this.text.writeChar(ch);
 	    }
 	    if (!t.text.trim().isEmpty())
@@ -62,6 +65,17 @@ final class TermInterpreter
 	    text.fillSpaces(n);
 	    break;
 	}
+	case "CursorForward": {
+	    	    final int n = !cmd.params.isEmpty() ? cmd.params.get(0).intValue() : 1;
+		    		    text.setCursorPos(text.getHotPointY(), text.getHotPointX() + 1);
+		    log.trace("Cursor moved forward to {}, {}", text.getHotPointX(), text.getHotPointY());
+		    break;
+	}
+	    
+	case "DecSet":
+	break;
+	case "DecReset":
+	    break;
 	default:
 	    log.warn("Unhandled {}", cmd.toString());
 	}

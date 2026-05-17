@@ -64,7 +64,7 @@ public final class App extends AppBase<Strings>
 		    while(pty.isRunning())
 		    {
 			final int c = r.read();
-			log.trace("Input {} ({})", (char)c, c);
+			//log.trace("Input {} ({})", (char)c, c);
 			if (c < 0)
 			{
 			    log.trace("Negative character from the terminal: {}", c);

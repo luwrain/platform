@@ -115,9 +115,9 @@ final class Parser
             switch (finalChar)
 	    {
                 case 'h':
-		    return "DEC SET (Включить режим)";
+		    return "DecSet";
                 case 'l':
-		    return "DEC RESET (Выключить режим)";
+		    return "DecReset";
                 default:
 		    return "DEC Private Command";
             }
