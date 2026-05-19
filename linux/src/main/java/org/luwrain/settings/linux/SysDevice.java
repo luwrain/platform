@@ -1,18 +1,5 @@
-/*
-   Copyright 2012-2018 Michael Pozhidaev <michael.pozhidaev@gmail.com>
-
-   This file is part of LUWRAIN.
-
-   LUWRAIN is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public
-   License as published by the Free Software Foundation; either
-   version 3 of the License, or (at your option) any later version.
-
-   LUWRAIN is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   General Public License for more details.
-*/
+// SPDX-License-Identifier: BUSL-1.1
+// Copyright 2012-2026 Michael Pozhidaev <msp@luwrain.org>
 
 package org.luwrain.settings.linux;
 
@@ -31,8 +18,6 @@ class SysDevice extends SimpleArea implements SectionArea
     SysDevice(ControlPanel controlPanel, org.luwrain.cpanel.Element el)
     {
 	super(new DefaultControlContext(controlPanel.getCoreInterface()), "Информация об устройстве");
-	NullCheck.notNull(controlPanel, "controlPanel");
-	NullCheck.notNull(el, "el");
 	this.controlPanel = controlPanel;
 	this.luwrain = controlPanel.getCoreInterface();
 	if (!(el instanceof org.luwrain.settings.linux.SysDevice.Element ))
@@ -58,16 +43,14 @@ class SysDevice extends SimpleArea implements SectionArea
 
     @Override public boolean onInputEvent(InputEvent event)
     {
-	NullCheck.notNull(event, "event");
-	if (controlPanel.onInputEvent(event))
+	if (controlPanel.onInputEvent(this, event))
 	    return true;
 	return super.onInputEvent(event);
     }
 
     @Override public boolean onSystemEvent(SystemEvent event)
     {
-	NullCheck.notNull(event, "event");
-	if (controlPanel.onSystemEvent(event))
+	if (controlPanel.onSystemEvent(this, event))
 	    return true;
 	return super.onSystemEvent(event);
     }
