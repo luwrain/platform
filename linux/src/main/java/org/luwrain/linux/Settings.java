@@ -27,7 +27,7 @@ public interface Network
     static public Network createNetwork(Registry registry)
     {
 	requireNonNull(registry, "registry can't be null");
-	return RegistryProxy.create(registry, NETWORK_PATH, Network.class);
+	return null;
     }
 
     static String makeRegistryName(String value)
