@@ -1,0 +1,14 @@
+plugins {
+  id 'java-library'
+}
+
+dependencies {
+  implementation libraries.base
+  implementation libraries.apacheBase
+  annotationProcessor libraries.autoService
+  implementation (project(':luwrain-base'))
+  implementation (project(':luwrain'))
+  implementation (project(':luwrain-linux'))
+  annotationProcessor (project(':luwrain-base'))
+  testImplementation libraries.junit
+}
