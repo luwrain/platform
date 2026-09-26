@@ -152,7 +152,7 @@ final String text;
 	{
 	    final String name = text.substring(0, pos);
 	    final String value = text.substring(pos + 1);
-	    final Character c = new Character(value.charAt(0));
+	    final Character c = Character.valueOf(value.charAt(0));
 	    Map<String, String> m = seqs.get(c);
 	    if (m == null)
 	    {
@@ -184,7 +184,7 @@ final String text;
 	    if (seq.endsWith("m"))
 		return "color";
 	}
-	final Map<String, String> m = seqs.get(new Character(seq.charAt(0)));
+	final Map<String, String> m = seqs.get(Character.valueOf(seq.charAt(0)));
 	if (m == null)
 	    return null;
 	final String s = m.get(seq);
